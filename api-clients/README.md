@@ -80,6 +80,11 @@ docker-compose logs -f api
 docker-compose down
 ```
 
+**Note sur les ports:** Le Service Clients utilise les ports suivants pour éviter les conflits avec d'autres services PayeTonKawa :
+- API: `8001` (au lieu de 8000)
+- PostgreSQL: `5434` (au lieu de 5432)
+- RabbitMQ: `5674` et `15674` (au lieu de 5672 et 15672)
+
 ## 🎯 Utilisation
 
 ### Démarrage du serveur
@@ -100,8 +105,8 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 
 Une fois le serveur démarré, accédez à :
 
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+- Swagger UI: http://localhost:8001/docs
+- ReDoc: http://localhost:8001/redoc
 
 ## 🔑 Authentification
 

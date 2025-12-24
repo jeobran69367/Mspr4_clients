@@ -37,8 +37,8 @@ docker-compose up -d
 docker-compose exec api alembic upgrade head
 docker-compose exec api python scripts/seed_data.py
 
-# API disponible sur http://localhost:8000
-# Documentation: http://localhost:8000/docs
+# API disponible sur http://localhost:8001
+# Documentation: http://localhost:8001/docs
 ```
 
 ## 📚 Documentation

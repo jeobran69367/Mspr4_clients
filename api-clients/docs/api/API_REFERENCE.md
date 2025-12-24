@@ -585,7 +585,7 @@ Authorization: Bearer <access_token>
 
 ```bash
 # 1. Créer un compte
-curl -X POST http://localhost:8000/api/v1/customers/ \
+curl -X POST http://localhost:8001/api/v1/customers/ \
   -H "Content-Type: application/json" \
   -d '{
     "civilite": "M",
@@ -597,7 +597,7 @@ curl -X POST http://localhost:8000/api/v1/customers/ \
   }'
 
 # 2. Se connecter
-curl -X POST http://localhost:8000/api/v1/auth/login \
+curl -X POST http://localhost:8001/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -607,7 +607,7 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
 # 3. Utiliser le token
 TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
-curl -X GET http://localhost:8000/api/v1/customers/me \
+curl -X GET http://localhost:8001/api/v1/customers/me \
   -H "Authorization: Bearer $TOKEN"
 ```
 
