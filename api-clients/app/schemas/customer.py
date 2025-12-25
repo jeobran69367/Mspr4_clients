@@ -4,6 +4,7 @@ from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
 from app.models.customer import CustomerType, CustomerStatus
+from app.schemas.address import AddressResponse
 
 
 class CustomerBase(BaseModel):
@@ -59,8 +60,7 @@ class CustomerResponse(CustomerBase):
 
 class CustomerWithAddresses(CustomerResponse):
     """Customer schema with addresses."""
-    from app.schemas.address import AddressResponse
-    adresses: List["AddressResponse"] = []
+    adresses: List[AddressResponse] = []
     
     class Config:
         from_attributes = True
