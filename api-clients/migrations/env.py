@@ -9,7 +9,7 @@ import os
 # Add the parent directory to the path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.database import Base
+from app.models.base import Base
 from app.models import Customer, Address, UserAuth
 from app.config import settings
 
