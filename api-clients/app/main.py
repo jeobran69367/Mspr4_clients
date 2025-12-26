@@ -2,35 +2,58 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import logging
+import subprocess
+
 from app.config import settings
 from app.api.v1 import api_router
 from app.events.producer import event_producer
 from app.events.consumer import event_consumer
 
+# Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def run_migrations():
+    """Run Alembic migrations."""
+    try:
+        logger.info("Running database migrations...")
+        subprocess.run(
+            ["alembic", "upgrade", "head"],
+            check=True
+        )
+        logger.info("Database migrations applied successfully")
+    except Exception as e:
+        logger.error(f"Failed to run migrations: {e}")
+        raise
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
-    # Startup
-    # Only connect to RabbitMQ if it's configured
+
+    # 1️⃣ Run database migrations FIRST
+    run_migrations()
+
+    # 2️⃣ Connect to RabbitMQ (non bloquant)
     if settings.RABBITMQ_HOST:
         try:
             await event_producer.connect()
-            # Note: Consumer would be started in a separate background task if needed
+            logger.info("RabbitMQ connection established")
         except Exception as e:
-            print(f"Warning: Failed to connect to RabbitMQ: {e}")
-            print("Application will run without event messaging capabilities")
+            logger.warning(f"RabbitMQ unavailable: {e}")
     else:
-        print("RabbitMQ not configured - running without event messaging")
-    
+        logger.info("RabbitMQ not configured")
+
     yield
-    
+
     # Shutdown
     try:
         await event_producer.close()
         await event_consumer.close()
     except Exception:
-        pass  # Ignore shutdown errors
+        pass
 
 
 app = FastAPI(
@@ -40,7 +63,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS configuration
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -49,13 +72,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API routes
+# Routes
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/")
 async def root():
-    """Root endpoint."""
     return {
         "name": settings.APP_NAME,
         "version": settings.APP_VERSION,
@@ -65,5 +87,4 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
     return {"status": "healthy"}
