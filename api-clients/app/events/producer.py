@@ -18,6 +18,9 @@ class EventProducer:
     
     async def connect(self):
         """Connect to RabbitMQ."""
+        if not settings.RABBITMQ_HOST:
+            return  # Skip connection if RabbitMQ is not configured
+            
         if self.connection is None or self.connection.is_closed:
             self.connection = await aio_pika.connect_robust(
                 host=settings.RABBITMQ_HOST,
@@ -44,7 +47,13 @@ class EventProducer:
     
     async def publish_customer_event(self, event: CustomerEvent):
         """Publish a customer event."""
+        if not settings.RABBITMQ_HOST:
+            return  # Skip publishing if RabbitMQ is not configured
+            
         await self.connect()
+        
+        if not self.exchange:
+            return  # Skip if connection failed
         
         message = Message(
             body=event.model_dump_json().encode(),
@@ -57,7 +66,13 @@ class EventProducer:
     
     async def publish_address_event(self, event: AddressEvent):
         """Publish an address event."""
+        if not settings.RABBITMQ_HOST:
+            return  # Skip publishing if RabbitMQ is not configured
+            
         await self.connect()
+        
+        if not self.exchange:
+            return  # Skip if connection failed
         
         message = Message(
             body=event.model_dump_json().encode(),

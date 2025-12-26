@@ -12,14 +12,25 @@ from app.events.consumer import event_consumer
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
     # Startup
-    await event_producer.connect()
-    # Note: Consumer would be started in a separate background task if needed
+    # Only connect to RabbitMQ if it's configured
+    if settings.RABBITMQ_HOST:
+        try:
+            await event_producer.connect()
+            # Note: Consumer would be started in a separate background task if needed
+        except Exception as e:
+            print(f"Warning: Failed to connect to RabbitMQ: {e}")
+            print("Application will run without event messaging capabilities")
+    else:
+        print("RabbitMQ not configured - running without event messaging")
     
     yield
     
     # Shutdown
-    await event_producer.close()
-    await event_consumer.close()
+    try:
+        await event_producer.close()
+        await event_consumer.close()
+    except Exception:
+        pass  # Ignore shutdown errors
 
 
 app = FastAPI(

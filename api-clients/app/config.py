@@ -26,12 +26,13 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    # RabbitMQ
-    RABBITMQ_HOST: str = "localhost"
+    # RabbitMQ (optional - can be None for deployments without message queue)
+    RABBITMQ_HOST: str | None = None
     RABBITMQ_PORT: int = 5672
     RABBITMQ_USER: str = "guest"
     RABBITMQ_PASSWORD: str = "guest"
     RABBITMQ_VHOST: str = "/"
+    RABBITMQ_ENABLED: bool = False  # Set to True when RABBITMQ_HOST is configured
     
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
