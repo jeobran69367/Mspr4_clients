@@ -12,14 +12,14 @@ async def test_create_address(client: AsyncClient, db_session: AsyncSession):
     customer = create_test_customer()
     db_session.add(customer)
     await db_session.commit()
-    
+
     # Login
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": customer.email, "password": "password123"}
     )
     token = login_response.json()["access_token"]
-    
+
     # Create address
     address_data = {
         "type_adresse": "livraison",
@@ -31,7 +31,7 @@ async def test_create_address(client: AsyncClient, db_session: AsyncSession):
         "ville": "Paris",
         "pays": "France"
     }
-    
+
     response = await client.post(
         "/api/v1/addresses/",
         json=address_data,
@@ -50,18 +50,18 @@ async def test_list_addresses(client: AsyncClient, db_session: AsyncSession):
     customer = create_test_customer()
     db_session.add(customer)
     await db_session.commit()
-    
+
     address = create_test_address(customer.id)
     db_session.add(address)
     await db_session.commit()
-    
+
     # Login
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": customer.email, "password": "password123"}
     )
     token = login_response.json()["access_token"]
-    
+
     # List addresses
     response = await client.get(
         "/api/v1/addresses/",

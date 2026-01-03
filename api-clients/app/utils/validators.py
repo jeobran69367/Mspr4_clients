@@ -21,7 +21,7 @@ def validate_siret(siret: str) -> bool:
     """Validate French SIRET number (14 digits)."""
     if not siret or len(siret) != 14 or not siret.isdigit():
         return False
-    
+
     # Luhn algorithm for SIRET validation
     total = 0
     for i, digit in enumerate(siret):
@@ -31,7 +31,7 @@ def validate_siret(siret: str) -> bool:
             if n > 9:
                 n -= 9
         total += n
-    
+
     return total % 10 == 0
 
 

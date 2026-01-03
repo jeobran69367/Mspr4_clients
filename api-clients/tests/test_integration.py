@@ -2,7 +2,6 @@
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from tests.factories import create_test_customer
 
 
 @pytest.mark.asyncio
@@ -18,11 +17,11 @@ async def test_customer_lifecycle(client: AsyncClient, db_session: AsyncSession)
         "type_client": "particulier",
         "password": "password123"
     }
-    
+
     create_response = await client.post("/api/v1/customers/", json=customer_data)
     assert create_response.status_code == 201
-    customer = create_response.json()
-    
+    customer_response = create_response.json()
+
     # 2. Login
     login_response = await client.post(
         "/api/v1/auth/login",
@@ -30,14 +29,14 @@ async def test_customer_lifecycle(client: AsyncClient, db_session: AsyncSession)
     )
     assert login_response.status_code == 200
     token = login_response.json()["access_token"]
-    
+
     # 3. Get customer info
     get_response = await client.get(
         "/api/v1/customers/me",
         headers={"Authorization": f"Bearer {token}"}
     )
     assert get_response.status_code == 200
-    
+
     # 4. Add address
     address_data = {
         "type_adresse": "livraison",
@@ -47,14 +46,14 @@ async def test_customer_lifecycle(client: AsyncClient, db_session: AsyncSession)
         "ville": "Paris",
         "pays": "France"
     }
-    
+
     address_response = await client.post(
         "/api/v1/addresses/",
         json=address_data,
         headers={"Authorization": f"Bearer {token}"}
     )
     assert address_response.status_code == 201
-    
+
     # 5. List addresses
     list_response = await client.get(
         "/api/v1/addresses/",

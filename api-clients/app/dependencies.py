@@ -20,7 +20,7 @@ async def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
+
     try:
         token = credentials.credentials
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -29,15 +29,15 @@ async def get_current_user(
             raise credentials_exception
     except JWTError:
         raise credentials_exception
-    
+
     # Import here to avoid circular imports
     from app.repositories.customer_repository import CustomerRepository
-    
+
     repo = CustomerRepository(db)
     user = await repo.get_by_id(user_id)
     if user is None:
         raise credentials_exception
-    
+
     return user
 
 

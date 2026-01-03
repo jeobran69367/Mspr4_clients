@@ -28,12 +28,12 @@ async def create_customer(
     """Create a new customer."""
     service = CustomerService(db)
     customer = await service.create_customer(customer_data)
-    
+
     # Publish event
     event_service = EventService()
     event = event_service.create_customer_event(EventType.CUSTOMER_CREATED, customer)
     await event_producer.publish_customer_event(event)
-    
+
     return customer
 
 
@@ -61,7 +61,7 @@ async def get_customer(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     service = CustomerService(db)
     customer = await service.get_customer(customer_id)
     if not customer:
@@ -86,15 +86,15 @@ async def update_customer(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     service = CustomerService(db)
     customer = await service.update_customer(customer_id, customer_data)
-    
+
     # Publish event
     event_service = EventService()
     event = event_service.create_customer_event(EventType.CUSTOMER_UPDATED, customer)
     await event_producer.publish_customer_event(event)
-    
+
     return customer
 
 
@@ -110,7 +110,7 @@ async def delete_customer(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     service = CustomerService(db)
     customer = await service.get_customer(customer_id)
     if not customer:
@@ -118,9 +118,9 @@ async def delete_customer(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Customer not found"
         )
-    
+
     await service.delete_customer(customer_id)
-    
+
     # Publish event
     event_service = EventService()
     event = event_service.create_customer_event(EventType.CUSTOMER_DELETED, customer)
@@ -137,15 +137,15 @@ async def list_customers(
 ):
     """List all customers (admin only)."""
     service = CustomerService(db)
-    
+
     if search:
         customers = await service.search_customers(search, skip=skip, limit=limit)
     else:
         customers = await service.list_customers(skip=skip, limit=limit)
-    
+
     total = await service.count_customers()
     pages = (total + limit - 1) // limit
-    
+
     return CustomerListResponse(
         items=customers,
         total=total,

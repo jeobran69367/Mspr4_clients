@@ -2,7 +2,6 @@
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.customer import Customer, CustomerType
 from tests.factories import create_test_customer
 
 
@@ -18,7 +17,7 @@ async def test_create_customer(client: AsyncClient):
         "type_client": "particulier",
         "password": "password123"
     }
-    
+
     response = await client.post("/api/v1/customers/", json=customer_data)
     assert response.status_code == 201
     data = response.json()
@@ -35,7 +34,7 @@ async def test_get_customer_me(client: AsyncClient, db_session: AsyncSession):
     customer = create_test_customer()
     db_session.add(customer)
     await db_session.commit()
-    
+
     # Login to get token
     login_response = await client.post(
         "/api/v1/auth/login",
@@ -43,7 +42,7 @@ async def test_get_customer_me(client: AsyncClient, db_session: AsyncSession):
     )
     assert login_response.status_code == 200
     token = login_response.json()["access_token"]
-    
+
     # Get current customer
     response = await client.get(
         "/api/v1/customers/me",
@@ -61,14 +60,14 @@ async def test_update_customer(client: AsyncClient, db_session: AsyncSession):
     customer = create_test_customer()
     db_session.add(customer)
     await db_session.commit()
-    
+
     # Login to get token
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": customer.email, "password": "password123"}
     )
     token = login_response.json()["access_token"]
-    
+
     # Update customer
     update_data = {"telephone": "0987654321"}
     response = await client.put(

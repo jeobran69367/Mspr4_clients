@@ -14,12 +14,12 @@ import uuid
 
 class AuthService:
     """Authentication service with business logic."""
-    
+
     def __init__(self, db: AsyncSession):
         """Initialize authentication service."""
         self.db = db
         self.customer_repository = CustomerRepository(db)
-    
+
     async def authenticate(
         self,
         email: str,
@@ -33,29 +33,29 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password"
             )
-        
+
         # Verify password
         if not customer.hashed_password or not verify_password(password, customer.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password"
             )
-        
+
         # Check if account is active
         if customer.statut != "actif" and customer.statut != "en_attente":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Account is not active"
             )
-        
+
         # Update last connection
         customer.date_derniere_connexion = datetime.utcnow()
         await self.customer_repository.update(customer)
-        
+
         # Create tokens
         access_token = create_access_token({"sub": str(customer.id)})
         refresh_token = create_refresh_token({"sub": str(customer.id)})
-        
+
         # Store refresh token
         user_auth = UserAuth(
             id=uuid.uuid4(),
@@ -65,9 +65,9 @@ class AuthService:
         )
         self.db.add(user_auth)
         await self.db.commit()
-        
+
         return customer, access_token, refresh_token
-    
+
     async def refresh_access_token(self, refresh_token: str) -> str:
         """Refresh access token using refresh token."""
         # Verify refresh token
@@ -77,7 +77,7 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid refresh token"
             )
-        
+
         # Get customer
         customer = await self.customer_repository.get_by_id(customer_id)
         if not customer:
@@ -85,11 +85,11 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Customer not found"
             )
-        
+
         # Create new access token
         access_token = create_access_token({"sub": str(customer.id)})
         return access_token
-    
+
     async def change_password(
         self,
         customer_id: str,
@@ -103,18 +103,18 @@ class AuthService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Customer not found"
             )
-        
+
         # Verify old password
         if not customer.hashed_password or not verify_password(old_password, customer.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect password"
             )
-        
+
         # Update password
         customer.hashed_password = hash_password(new_password)
         await self.customer_repository.update(customer)
-    
+
     async def confirm_email(self, token: str) -> Customer:
         """Confirm customer email."""
         # Verify token
@@ -124,7 +124,7 @@ class AuthService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid or expired token"
             )
-        
+
         # Get and update customer
         customer = await self.customer_repository.get_by_id(customer_id)
         if not customer:
@@ -132,9 +132,9 @@ class AuthService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Customer not found"
             )
-        
+
         customer.email_confirme = True
         if customer.statut == "en_attente":
             customer.statut = "actif"
-        
+
         return await self.customer_repository.update(customer)

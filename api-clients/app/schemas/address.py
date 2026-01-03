@@ -47,6 +47,6 @@ class AddressResponse(AddressBase):
     client_id: UUID
     date_creation: datetime
     date_modification: datetime
-    
+
     class Config:
         from_attributes = True

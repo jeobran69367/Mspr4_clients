@@ -18,7 +18,7 @@ async def seed_data():
     """Seed database with test data."""
     async with AsyncSessionLocal() as db:
         print("Seeding database with test data...")
-        
+
         # Create admin user
         admin = Customer(
             id=uuid.uuid4(),
@@ -34,7 +34,7 @@ async def seed_data():
             email_confirme=True,
         )
         db.add(admin)
-        
+
         # Create test customer
         customer = Customer(
             id=uuid.uuid4(),
@@ -50,7 +50,7 @@ async def seed_data():
             email_confirme=True,
         )
         db.add(customer)
-        
+
         # Create address for test customer
         address = Address(
             id=uuid.uuid4(),
@@ -65,7 +65,7 @@ async def seed_data():
             pays="France",
         )
         db.add(address)
-        
+
         # Create professional customer
         pro_customer = Customer(
             id=uuid.uuid4(),
@@ -85,7 +85,7 @@ async def seed_data():
             email_confirme=True,
         )
         db.add(pro_customer)
-        
+
         await db.commit()
         print("Database seeded successfully!")
         print("\nTest accounts created:")

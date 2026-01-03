@@ -23,12 +23,12 @@ async def create_address(
     """Create a new address for current customer."""
     service = AddressService(db)
     address = await service.create_address(str(current_user.id), address_data)
-    
+
     # Publish event
     event_service = EventService()
     event = event_service.create_address_event(EventType.ADDRESS_CREATED, address, current_user.id)
     await event_producer.publish_address_event(event)
-    
+
     return address
 
 
@@ -73,14 +73,14 @@ async def get_address(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Address not found"
         )
-    
+
     # Check if address belongs to current user
     if str(address.client_id) != str(current_user.id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     return address
 
 
@@ -99,21 +99,21 @@ async def update_address(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Address not found"
         )
-    
+
     # Check if address belongs to current user
     if str(address.client_id) != str(current_user.id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     address = await service.update_address(address_id, address_data)
-    
+
     # Publish event
     event_service = EventService()
     event = event_service.create_address_event(EventType.ADDRESS_UPDATED, address, current_user.id)
     await event_producer.publish_address_event(event)
-    
+
     return address
 
 
@@ -131,18 +131,18 @@ async def delete_address(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Address not found"
         )
-    
+
     # Check if address belongs to current user
     if str(address.client_id) != str(current_user.id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     # Publish event before deletion
     event_service = EventService()
     event = event_service.create_address_event(EventType.ADDRESS_DELETED, address, current_user.id)
-    
+
     await service.delete_address(address_id)
     await event_producer.publish_address_event(event)
 
@@ -156,10 +156,10 @@ async def set_default_address(
     """Set address as default."""
     service = AddressService(db)
     address = await service.set_as_default(address_id, str(current_user.id))
-    
+
     # Publish event
     event_service = EventService()
     event = event_service.create_address_event(EventType.ADDRESS_UPDATED, address, current_user.id)
     await event_producer.publish_address_event(event)
-    
+
     return address

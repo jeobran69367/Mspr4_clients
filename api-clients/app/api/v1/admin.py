@@ -22,12 +22,12 @@ async def activate_customer(
     """Activate a customer account."""
     service = CustomerService(db)
     customer = await service.activate_customer(customer_id)
-    
+
     # Publish event
     event_service = EventService()
     event = event_service.create_customer_event(EventType.CUSTOMER_STATUS_CHANGED, customer)
     await event_producer.publish_customer_event(event)
-    
+
     return customer
 
 
@@ -40,12 +40,12 @@ async def suspend_customer(
     """Suspend a customer account."""
     service = CustomerService(db)
     customer = await service.suspend_customer(customer_id)
-    
+
     # Publish event
     event_service = EventService()
     event = event_service.create_customer_event(EventType.CUSTOMER_STATUS_CHANGED, customer)
     await event_producer.publish_customer_event(event)
-    
+
     return customer
 
 
@@ -57,9 +57,9 @@ async def get_stats(
     """Get customer statistics."""
     from app.repositories.customer_repository import CustomerRepository
     from app.models.customer import CustomerType, CustomerStatus
-    
+
     repo = CustomerRepository(db)
-    
+
     stats = {
         "total_customers": await repo.count(),
         "by_type": {
@@ -75,5 +75,5 @@ async def get_stats(
             "en_attente": await repo.count_by_status(CustomerStatus.EN_ATTENTE),
         }
     }
-    
+
     return stats

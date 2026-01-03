@@ -29,7 +29,7 @@ async def login(
         login_data.email,
         login_data.password
     )
-    
+
     return LoginResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -46,7 +46,7 @@ async def refresh_token(
     """Refresh access token using refresh token."""
     service = AuthService(db)
     access_token = await service.refresh_access_token(token_data.refresh_token)
-    
+
     return TokenResponse(
         access_token=access_token,
         token_type="bearer"

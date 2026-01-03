@@ -9,11 +9,11 @@ from app.models.address import Address
 
 class EventService:
     """Event service for creating and managing events."""
-    
+
     def __init__(self):
         """Initialize event service."""
         pass
-    
+
     def create_customer_event(
         self,
         event_type: EventType,
@@ -28,7 +28,7 @@ class EventService:
             source_service="api-clients",
             correlation_id=correlation_id
         )
-        
+
         event = CustomerEvent(
             metadata=metadata,
             customer_id=customer.id,
@@ -43,9 +43,9 @@ class EventService:
                 "statut": customer.statut.value,
             }
         )
-        
+
         return event
-    
+
     def create_address_event(
         self,
         event_type: EventType,
@@ -61,7 +61,7 @@ class EventService:
             source_service="api-clients",
             correlation_id=correlation_id
         )
-        
+
         event = AddressEvent(
             metadata=metadata,
             address_id=address.id,
@@ -74,5 +74,5 @@ class EventService:
                 "est_defaut": address.est_defaut,
             }
         )
-        
+
         return event
