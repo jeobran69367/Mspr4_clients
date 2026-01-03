@@ -84,11 +84,11 @@ docker-compose -f docker-compose.test.yml down
 
 Effectue plusieurs analyses de sécurité :
 
-#### a) Safety - Vulnérabilités des dépendances
-Vérifie si les packages Python ont des vulnérabilités connues.
+#### a) pip-audit - Vulnérabilités des dépendances
+Vérifie si les packages Python ont des vulnérabilités connues dans la base de données PyPI Advisory.
 
 ```bash
-safety check
+pip-audit --desc
 ```
 
 #### b) Bandit - Analyse statique de sécurité
@@ -106,6 +106,7 @@ bandit -r app -f screen
 Analyse les dépendances pour les vulnérabilités CVE connues.
 
 **Artefacts générés :**
+- Rapport pip-audit JSON (30 jours)
 - Rapport Bandit JSON (30 jours)
 - Rapport OWASP HTML (30 jours)
 
