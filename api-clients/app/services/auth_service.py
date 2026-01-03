@@ -1,6 +1,6 @@
 """Authentication service with business logic."""
 from datetime import datetime, timedelta
-from typing import Optional, Tuple
+from typing import Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from app.models.customer import Customer

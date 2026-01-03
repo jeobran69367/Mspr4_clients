@@ -1,8 +1,5 @@
 """Authentication schemas for API validation."""
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
-from datetime import datetime
-from uuid import UUID
 
 
 class LoginRequest(BaseModel):

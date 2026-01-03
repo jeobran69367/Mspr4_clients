@@ -1,5 +1,4 @@
 """RabbitMQ event producer."""
-import json
 from typing import Optional
 import aio_pika
 from aio_pika import Message, DeliveryMode

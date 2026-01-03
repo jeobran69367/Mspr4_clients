@@ -20,7 +20,6 @@ async def test_customer_lifecycle(client: AsyncClient, db_session: AsyncSession)
 
     create_response = await client.post("/api/v1/customers/", json=customer_data)
     assert create_response.status_code == 201
-    customer_response = create_response.json()
 
     # 2. Login
     login_response = await client.post(

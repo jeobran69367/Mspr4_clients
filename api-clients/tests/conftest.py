@@ -7,7 +7,6 @@ from httpx import AsyncClient
 from app.main import app
 from app.database import get_db
 from app.models.base import Base
-from app.config import settings
 
 # Test database URL
 TEST_DATABASE_URL = "postgresql+asyncpg://payetonkawa_test:payetonkawa_test@localhost:5433/payetonkawa_clients_test"
