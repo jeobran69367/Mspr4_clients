@@ -27,19 +27,13 @@ class CustomerService:
         # Check if email already exists
         existing = await self.repository.get_by_email(customer_data.email)
         if existing:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
         # Check if SIRET already exists (for professional customers)
         if customer_data.siret:
             existing_siret = await self.repository.get_by_siret(customer_data.siret)
             if existing_siret:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="SIRET already registered"
-                )
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="SIRET already registered")
 
         # Create customer
         customer = Customer(
@@ -72,36 +66,23 @@ class CustomerService:
         """Get customer by email."""
         return await self.repository.get_by_email(email)
 
-    async def update_customer(
-        self,
-        customer_id: str,
-        customer_data: CustomerUpdate
-    ) -> Customer:
+    async def update_customer(self, customer_id: str, customer_data: CustomerUpdate) -> Customer:
         """Update customer."""
         customer = await self.repository.get_by_id(customer_id)
         if not customer:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Customer not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
 
         # Check email uniqueness if changed
         if customer_data.email and customer_data.email != customer.email:
             existing = await self.repository.get_by_email(customer_data.email)
             if existing:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Email already registered"
-                )
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
         # Check SIRET uniqueness if changed
         if customer_data.siret and customer_data.siret != customer.siret:
             existing_siret = await self.repository.get_by_siret(customer_data.siret)
             if existing_siret:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="SIRET already registered"
-                )
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="SIRET already registered")
 
         # Update fields
         update_data = customer_data.model_dump(exclude_unset=True)
@@ -114,10 +95,7 @@ class CustomerService:
         """Delete customer (soft delete by changing status)."""
         customer = await self.repository.get_by_id(customer_id)
         if not customer:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Customer not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
 
         customer.statut = CustomerStatus.INACTIF
         customer.date_desactivation = datetime.utcnow()
@@ -127,10 +105,7 @@ class CustomerService:
         """Activate customer account."""
         customer = await self.repository.get_by_id(customer_id)
         if not customer:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Customer not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
 
         customer.statut = CustomerStatus.ACTIF
         customer.email_confirme = True
@@ -140,28 +115,16 @@ class CustomerService:
         """Suspend customer account."""
         customer = await self.repository.get_by_id(customer_id)
         if not customer:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Customer not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
 
         customer.statut = CustomerStatus.SUSPENDU
         return await self.repository.update(customer)
 
-    async def list_customers(
-        self,
-        skip: int = 0,
-        limit: int = 100
-    ) -> List[Customer]:
+    async def list_customers(self, skip: int = 0, limit: int = 100) -> List[Customer]:
         """List customers with pagination."""
         return await self.repository.get_all(skip=skip, limit=limit)
 
-    async def search_customers(
-        self,
-        query: str,
-        skip: int = 0,
-        limit: int = 100
-    ) -> List[Customer]:
+    async def search_customers(self, query: str, skip: int = 0, limit: int = 100) -> List[Customer]:
         """Search customers."""
         return await self.repository.search(query, skip=skip, limit=limit)
 

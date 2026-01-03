@@ -6,6 +6,7 @@ from app.models.customer import CustomerType
 
 class Permission(str, Enum):
     """Permission enumeration."""
+
     READ_CUSTOMER = "read:customer"
     WRITE_CUSTOMER = "write:customer"
     DELETE_CUSTOMER = "delete:customer"

@@ -6,12 +6,12 @@ from typing import Optional
 def format_phone_number(phone: str) -> str:
     """Format phone number to standard format."""
     # Remove all non-digit characters
-    digits = ''.join(filter(str.isdigit, phone))
+    digits = "".join(filter(str.isdigit, phone))
 
     # Format as XX XX XX XX XX
     if len(digits) == 10:
         return f"{digits[0:2]} {digits[2:4]} {digits[4:6]} {digits[6:8]} {digits[8:10]}"
-    elif len(digits) == 11 and digits.startswith('33'):
+    elif len(digits) == 11 and digits.startswith("33"):
         # +33 format
         return f"+33 {digits[2]} {digits[3:5]} {digits[5:7]} {digits[7:9]} {digits[9:11]}"
 
@@ -21,7 +21,7 @@ def format_phone_number(phone: str) -> str:
 def format_siret(siret: str) -> str:
     """Format SIRET number."""
     # Remove all non-digit characters
-    digits = ''.join(filter(str.isdigit, siret))
+    digits = "".join(filter(str.isdigit, siret))
 
     # Format as XXX XXX XXX XXXXX
     if len(digits) == 14:

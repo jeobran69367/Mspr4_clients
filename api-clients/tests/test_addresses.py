@@ -14,10 +14,7 @@ async def test_create_address(client: AsyncClient, db_session: AsyncSession):
     await db_session.commit()
 
     # Login
-    login_response = await client.post(
-        "/api/v1/auth/login",
-        json={"email": customer.email, "password": "password123"}
-    )
+    login_response = await client.post("/api/v1/auth/login", json={"email": customer.email, "password": "password123"})
     token = login_response.json()["access_token"]
 
     # Create address
@@ -29,14 +26,10 @@ async def test_create_address(client: AsyncClient, db_session: AsyncSession):
         "adresse_ligne1": "123 Test Street",
         "code_postal": "75001",
         "ville": "Paris",
-        "pays": "France"
+        "pays": "France",
     }
 
-    response = await client.post(
-        "/api/v1/addresses/",
-        json=address_data,
-        headers={"Authorization": f"Bearer {token}"}
-    )
+    response = await client.post("/api/v1/addresses/", json=address_data, headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 201
     data = response.json()
     assert data["ville"] == address_data["ville"]
@@ -56,17 +49,11 @@ async def test_list_addresses(client: AsyncClient, db_session: AsyncSession):
     await db_session.commit()
 
     # Login
-    login_response = await client.post(
-        "/api/v1/auth/login",
-        json={"email": customer.email, "password": "password123"}
-    )
+    login_response = await client.post("/api/v1/auth/login", json={"email": customer.email, "password": "password123"})
     token = login_response.json()["access_token"]
 
     # List addresses
-    response = await client.get(
-        "/api/v1/addresses/",
-        headers={"Authorization": f"Bearer {token}"}
-    )
+    response = await client.get("/api/v1/addresses/", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1

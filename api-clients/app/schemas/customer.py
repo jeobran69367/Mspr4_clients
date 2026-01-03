@@ -10,6 +10,7 @@ from app.schemas.address import AddressResponse
 
 class CustomerBase(BaseModel):
     """Base customer schema."""
+
     civilite: Optional[str] = None
     nom: str = Field(..., min_length=1, max_length=100)
     prenom: str = Field(..., min_length=1, max_length=100)
@@ -26,11 +27,13 @@ class CustomerBase(BaseModel):
 
 class CustomerCreate(CustomerBase):
     """Schema for creating a customer."""
+
     password: str = Field(..., min_length=8)
 
 
 class CustomerUpdate(BaseModel):
     """Schema for updating a customer."""
+
     civilite: Optional[str] = None
     nom: Optional[str] = Field(None, min_length=1, max_length=100)
     prenom: Optional[str] = Field(None, min_length=1, max_length=100)
@@ -46,6 +49,7 @@ class CustomerUpdate(BaseModel):
 
 class CustomerResponse(CustomerBase):
     """Schema for customer response."""
+
     id: UUID
     reference: str
     statut: CustomerStatus
@@ -61,6 +65,7 @@ class CustomerResponse(CustomerBase):
 
 class CustomerWithAddresses(CustomerResponse):
     """Customer schema with addresses."""
+
     adresses: List[AddressResponse] = []
 
     class Config:
@@ -69,6 +74,7 @@ class CustomerWithAddresses(CustomerResponse):
 
 class CustomerListResponse(BaseModel):
     """Schema for customer list response."""
+
     items: List[CustomerResponse]
     total: int
     page: int

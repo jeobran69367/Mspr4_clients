@@ -7,6 +7,7 @@ from uuid import UUID
 
 class BaseEvent(BaseModel):
     """Base event schema."""
+
     event_id: UUID
     event_type: str
     timestamp: datetime
@@ -16,6 +17,7 @@ class BaseEvent(BaseModel):
 
 class OrderCreatedEvent(BaseEvent):
     """Order created event from Orders service."""
+
     order_id: UUID
     customer_id: UUID
     total_amount: float
@@ -24,6 +26,7 @@ class OrderCreatedEvent(BaseEvent):
 
 class ProductReservedEvent(BaseEvent):
     """Product reserved event from Products service."""
+
     product_id: UUID
     customer_id: UUID
     quantity: int

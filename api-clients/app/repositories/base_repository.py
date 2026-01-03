@@ -17,16 +17,12 @@ class BaseRepository(Generic[ModelType]):
 
     async def get_by_id(self, id: str) -> Optional[ModelType]:
         """Get a record by ID."""
-        result = await self.db.execute(
-            select(self.model).where(self.model.id == id)
-        )
+        result = await self.db.execute(select(self.model).where(self.model.id == id))
         return result.scalar_one_or_none()
 
     async def get_all(self, skip: int = 0, limit: int = 100) -> List[ModelType]:
         """Get all records with pagination."""
-        result = await self.db.execute(
-            select(self.model).offset(skip).limit(limit)
-        )
+        result = await self.db.execute(select(self.model).offset(skip).limit(limit))
         return list(result.scalars().all())
 
     async def create(self, obj: ModelType) -> ModelType:
@@ -50,7 +46,6 @@ class BaseRepository(Generic[ModelType]):
     async def count(self) -> int:
         """Count total records."""
         from sqlalchemy import func
-        result = await self.db.execute(
-            select(func.count()).select_from(self.model)
-        )
+
+        result = await self.db.execute(select(func.count()).select_from(self.model))
         return result.scalar_one()

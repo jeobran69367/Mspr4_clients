@@ -15,30 +15,20 @@ class AddressRepository(BaseRepository[Address]):
 
     async def get_by_customer_id(self, customer_id: str) -> List[Address]:
         """Get all addresses for a customer."""
-        result = await self.db.execute(
-            select(Address).where(Address.client_id == customer_id)
-        )
+        result = await self.db.execute(select(Address).where(Address.client_id == customer_id))
         return list(result.scalars().all())
 
     async def get_default_address(self, customer_id: str) -> Optional[Address]:
         """Get default address for a customer."""
         result = await self.db.execute(
-            select(Address)
-            .where(Address.client_id == customer_id)
-            .where(Address.est_defaut.is_(True))
+            select(Address).where(Address.client_id == customer_id).where(Address.est_defaut.is_(True))
         )
         return result.scalar_one_or_none()
 
-    async def get_by_type(
-        self,
-        customer_id: str,
-        address_type: AddressType
-    ) -> List[Address]:
+    async def get_by_type(self, customer_id: str, address_type: AddressType) -> List[Address]:
         """Get addresses by type for a customer."""
         result = await self.db.execute(
-            select(Address)
-            .where(Address.client_id == customer_id)
-            .where(Address.type_adresse == address_type)
+            select(Address).where(Address.client_id == customer_id).where(Address.type_adresse == address_type)
         )
         return list(result.scalars().all())
 

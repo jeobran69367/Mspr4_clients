@@ -32,9 +32,7 @@ class EventProducer:
 
             # Declare exchange
             self.exchange = await self.channel.declare_exchange(
-                "payetonkawa.events",
-                aio_pika.ExchangeType.TOPIC,
-                durable=True
+                "payetonkawa.events", aio_pika.ExchangeType.TOPIC, durable=True
             )
 
     async def close(self):

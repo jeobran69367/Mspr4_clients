@@ -8,6 +8,7 @@ from enum import Enum
 
 class EventType(str, Enum):
     """Event type enumeration."""
+
     CUSTOMER_CREATED = "customer.created"
     CUSTOMER_UPDATED = "customer.updated"
     CUSTOMER_DELETED = "customer.deleted"
@@ -19,6 +20,7 @@ class EventType(str, Enum):
 
 class EventMetadata(BaseModel):
     """Event metadata."""
+
     event_id: UUID
     event_type: EventType
     timestamp: datetime
@@ -28,6 +30,7 @@ class EventMetadata(BaseModel):
 
 class CustomerEvent(BaseModel):
     """Customer event schema."""
+
     metadata: EventMetadata
     customer_id: UUID
     customer_reference: str
@@ -39,6 +42,7 @@ class CustomerEvent(BaseModel):
 
 class AddressEvent(BaseModel):
     """Address event schema."""
+
     metadata: EventMetadata
     address_id: UUID
     customer_id: UUID

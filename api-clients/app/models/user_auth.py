@@ -8,6 +8,7 @@ from app.models.base import Base
 
 class UserAuth(Base):
     """User authentication model for refresh tokens and sessions."""
+
     __tablename__ = "user_auth"
 
     # Identifiers

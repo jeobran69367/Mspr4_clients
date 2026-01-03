@@ -10,6 +10,7 @@ from app.models.base import Base
 
 class CustomerType(str, PyEnum):
     """Customer type enumeration."""
+
     PARTICULIER = "particulier"
     PROFESSIONNEL = "professionnel"
     DISTRIBUTEUR = "distributeur"
@@ -18,6 +19,7 @@ class CustomerType(str, PyEnum):
 
 class CustomerStatus(str, PyEnum):
     """Customer status enumeration."""
+
     ACTIF = "actif"
     INACTIF = "inactif"
     SUSPENDU = "suspendu"
@@ -26,6 +28,7 @@ class CustomerStatus(str, PyEnum):
 
 class Customer(Base):
     """Customer database model."""
+
     __tablename__ = "customers"
 
     # Identifiers
@@ -68,8 +71,8 @@ class Customer(Base):
 
     # Composite indexes
     __table_args__ = (
-        Index('idx_customer_type_status', 'type_client', 'statut'),
-        Index('idx_customer_email_status', 'email', 'statut'),
+        Index("idx_customer_type_status", "type_client", "statut"),
+        Index("idx_customer_email_status", "email", "statut"),
     )
 
     def __repr__(self):

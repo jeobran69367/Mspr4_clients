@@ -15,9 +15,7 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 @router.post("/customers/{customer_id}/activate", response_model=CustomerResponse)
 async def activate_customer(
-    customer_id: str,
-    current_user: Customer = Depends(require_admin),
-    db: AsyncSession = Depends(get_db)
+    customer_id: str, current_user: Customer = Depends(require_admin), db: AsyncSession = Depends(get_db)
 ):
     """Activate a customer account."""
     service = CustomerService(db)
@@ -33,9 +31,7 @@ async def activate_customer(
 
 @router.post("/customers/{customer_id}/suspend", response_model=CustomerResponse)
 async def suspend_customer(
-    customer_id: str,
-    current_user: Customer = Depends(require_admin),
-    db: AsyncSession = Depends(get_db)
+    customer_id: str, current_user: Customer = Depends(require_admin), db: AsyncSession = Depends(get_db)
 ):
     """Suspend a customer account."""
     service = CustomerService(db)
@@ -50,10 +46,7 @@ async def suspend_customer(
 
 
 @router.get("/stats")
-async def get_stats(
-    current_user: Customer = Depends(require_admin),
-    db: AsyncSession = Depends(get_db)
-):
+async def get_stats(current_user: Customer = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Get customer statistics."""
     from app.repositories.customer_repository import CustomerRepository
     from app.models.customer import CustomerType, CustomerStatus
@@ -73,7 +66,7 @@ async def get_stats(
             "inactif": await repo.count_by_status(CustomerStatus.INACTIF),
             "suspendu": await repo.count_by_status(CustomerStatus.SUSPENDU),
             "en_attente": await repo.count_by_status(CustomerStatus.EN_ATTENTE),
-        }
+        },
     }
 
     return stats

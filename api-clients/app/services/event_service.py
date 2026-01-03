@@ -15,10 +15,7 @@ class EventService:
         pass
 
     def create_customer_event(
-        self,
-        event_type: EventType,
-        customer: Customer,
-        correlation_id: Optional[str] = None
+        self, event_type: EventType, customer: Customer, correlation_id: Optional[str] = None
     ) -> CustomerEvent:
         """Create a customer event."""
         metadata = EventMetadata(
@@ -26,7 +23,7 @@ class EventService:
             event_type=event_type,
             timestamp=datetime.utcnow(),
             source_service="api-clients",
-            correlation_id=correlation_id
+            correlation_id=correlation_id,
         )
 
         event = CustomerEvent(
@@ -41,17 +38,13 @@ class EventService:
                 "prenom": customer.prenom,
                 "type_client": customer.type_client.value,
                 "statut": customer.statut.value,
-            }
+            },
         )
 
         return event
 
     def create_address_event(
-        self,
-        event_type: EventType,
-        address: Address,
-        customer_id: uuid.UUID,
-        correlation_id: Optional[str] = None
+        self, event_type: EventType, address: Address, customer_id: uuid.UUID, correlation_id: Optional[str] = None
     ) -> AddressEvent:
         """Create an address event."""
         metadata = EventMetadata(
@@ -59,7 +52,7 @@ class EventService:
             event_type=event_type,
             timestamp=datetime.utcnow(),
             source_service="api-clients",
-            correlation_id=correlation_id
+            correlation_id=correlation_id,
         )
 
         event = AddressEvent(
@@ -72,7 +65,7 @@ class EventService:
                 "code_postal": address.code_postal,
                 "pays": address.pays,
                 "est_defaut": address.est_defaut,
-            }
+            },
         )
 
         return event

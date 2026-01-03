@@ -19,10 +19,7 @@ def run_migrations():
     """Run Alembic migrations."""
     try:
         logger.info("Running database migrations...")
-        subprocess.run(
-            ["alembic", "upgrade", "head"],
-            check=True
-        )
+        subprocess.run(["alembic", "upgrade", "head"], check=True)
         logger.info("Database migrations applied successfully")
     except Exception as e:
         logger.error(f"Failed to run migrations: {e}")
@@ -56,12 +53,7 @@ async def lifespan(app: FastAPI):
         pass
 
 
-app = FastAPI(
-    title=settings.APP_NAME,
-    version=settings.APP_VERSION,
-    debug=settings.DEBUG,
-    lifespan=lifespan
-)
+app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION, debug=settings.DEBUG, lifespan=lifespan)
 
 # CORS
 app.add_middleware(
@@ -78,11 +70,7 @@ app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 @app.get("/")
 async def root():
-    return {
-        "name": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-        "status": "running"
-    }
+    return {"name": settings.APP_NAME, "version": settings.APP_VERSION, "status": "running"}
 
 
 @app.get("/health")

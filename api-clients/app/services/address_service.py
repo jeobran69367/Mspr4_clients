@@ -16,11 +16,7 @@ class AddressService:
         self.db = db
         self.repository = AddressRepository(db)
 
-    async def create_address(
-        self,
-        customer_id: str,
-        address_data: AddressCreate
-    ) -> Address:
+    async def create_address(self, customer_id: str, address_data: AddressCreate) -> Address:
         """Create a new address for a customer."""
         # If this is set as default, unset other defaults
         if address_data.est_defaut:
@@ -59,18 +55,11 @@ class AddressService:
         """Get default address for a customer."""
         return await self.repository.get_default_address(customer_id)
 
-    async def update_address(
-        self,
-        address_id: str,
-        address_data: AddressUpdate
-    ) -> Address:
+    async def update_address(self, address_id: str, address_data: AddressUpdate) -> Address:
         """Update an address."""
         address = await self.repository.get_by_id(address_id)
         if not address:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Address not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Address not found")
 
         # If setting as default, unset other defaults
         if address_data.est_defaut is True and not address.est_defaut:
@@ -87,10 +76,7 @@ class AddressService:
         """Delete an address."""
         address = await self.repository.get_by_id(address_id)
         if not address:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Address not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Address not found")
 
         await self.repository.delete(address)
 
@@ -98,16 +84,10 @@ class AddressService:
         """Set an address as default."""
         address = await self.repository.get_by_id(address_id)
         if not address:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Address not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Address not found")
 
         if str(address.client_id) != customer_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Address does not belong to this customer"
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Address does not belong to this customer")
 
         await self.repository.set_default_address(address_id, customer_id)
         return await self.repository.get_by_id(address_id)

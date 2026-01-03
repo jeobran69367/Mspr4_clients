@@ -15,7 +15,7 @@ async def test_create_customer(client: AsyncClient):
         "email": "testuser@example.com",
         "telephone": "0123456789",
         "type_client": "particulier",
-        "password": "password123"
+        "password": "password123",
     }
 
     response = await client.post("/api/v1/customers/", json=customer_data)
@@ -36,18 +36,12 @@ async def test_get_customer_me(client: AsyncClient, db_session: AsyncSession):
     await db_session.commit()
 
     # Login to get token
-    login_response = await client.post(
-        "/api/v1/auth/login",
-        json={"email": customer.email, "password": "password123"}
-    )
+    login_response = await client.post("/api/v1/auth/login", json={"email": customer.email, "password": "password123"})
     assert login_response.status_code == 200
     token = login_response.json()["access_token"]
 
     # Get current customer
-    response = await client.get(
-        "/api/v1/customers/me",
-        headers={"Authorization": f"Bearer {token}"}
-    )
+    response = await client.get("/api/v1/customers/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     data = response.json()
     assert data["email"] == customer.email
@@ -62,18 +56,13 @@ async def test_update_customer(client: AsyncClient, db_session: AsyncSession):
     await db_session.commit()
 
     # Login to get token
-    login_response = await client.post(
-        "/api/v1/auth/login",
-        json={"email": customer.email, "password": "password123"}
-    )
+    login_response = await client.post("/api/v1/auth/login", json={"email": customer.email, "password": "password123"})
     token = login_response.json()["access_token"]
 
     # Update customer
     update_data = {"telephone": "0987654321"}
     response = await client.put(
-        f"/api/v1/customers/{customer.id}",
-        json=update_data,
-        headers={"Authorization": f"Bearer {token}"}
+        f"/api/v1/customers/{customer.id}", json=update_data, headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == 200
     data = response.json()

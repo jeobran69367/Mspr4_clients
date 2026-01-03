@@ -8,6 +8,7 @@ from app.models.address import AddressType
 
 class AddressBase(BaseModel):
     """Base address schema."""
+
     type_adresse: AddressType
     est_defaut: bool = False
     libelle: Optional[str] = None
@@ -23,11 +24,13 @@ class AddressBase(BaseModel):
 
 class AddressCreate(AddressBase):
     """Schema for creating an address."""
+
     pass
 
 
 class AddressUpdate(BaseModel):
     """Schema for updating an address."""
+
     type_adresse: Optional[AddressType] = None
     est_defaut: Optional[bool] = None
     libelle: Optional[str] = None
@@ -43,6 +46,7 @@ class AddressUpdate(BaseModel):
 
 class AddressResponse(AddressBase):
     """Schema for address response."""
+
     id: UUID
     client_id: UUID
     date_creation: datetime

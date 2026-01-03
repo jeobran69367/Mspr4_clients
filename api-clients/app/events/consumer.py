@@ -28,9 +28,7 @@ class EventConsumer:
 
             # Declare exchange
             self.exchange = await self.channel.declare_exchange(
-                "payetonkawa.events",
-                aio_pika.ExchangeType.TOPIC,
-                durable=True
+                "payetonkawa.events", aio_pika.ExchangeType.TOPIC, durable=True
             )
 
     async def close(self):
@@ -40,20 +38,12 @@ class EventConsumer:
         if self.connection:
             await self.connection.close()
 
-    async def consume(
-        self,
-        queue_name: str,
-        routing_keys: list,
-        callback: Callable
-    ):
+    async def consume(self, queue_name: str, routing_keys: list, callback: Callable):
         """Start consuming messages from a queue."""
         await self.connect()
 
         # Declare queue
-        queue = await self.channel.declare_queue(
-            queue_name,
-            durable=True
-        )
+        queue = await self.channel.declare_queue(queue_name, durable=True)
 
         # Bind queue to exchange with routing keys
         for routing_key in routing_keys:

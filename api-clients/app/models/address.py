@@ -10,6 +10,7 @@ from app.models.base import Base
 
 class AddressType(str, PyEnum):
     """Address type enumeration."""
+
     LIVRAISON = "livraison"
     FACTURATION = "facturation"
     LIVRAISON_FACTURATION = "livraison_facturation"
@@ -17,6 +18,7 @@ class AddressType(str, PyEnum):
 
 class Address(Base):
     """Address database model."""
+
     __tablename__ = "addresses"
 
     # Identifiers
