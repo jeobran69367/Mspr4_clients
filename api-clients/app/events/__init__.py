@@ -1,7 +1,7 @@
 """Events package initialization."""
-from app.events.producer import event_producer, EventProducer
-from app.events.consumer import event_consumer, EventConsumer
+from app.events.consumer import EventConsumer, event_consumer
 from app.events.handlers import handle_order_created, handle_product_reserved
+from app.events.producer import EventProducer, event_producer
 
 __all__ = [
     "event_producer",

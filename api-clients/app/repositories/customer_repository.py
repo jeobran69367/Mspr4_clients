@@ -1,7 +1,9 @@
 """Customer repository."""
-from typing import Optional, List
+from typing import List, Optional
+
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, func
+
 from app.models.customer import Customer, CustomerStatus, CustomerType
 from app.repositories.base_repository import BaseRepository
 

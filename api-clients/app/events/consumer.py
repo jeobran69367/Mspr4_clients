@@ -1,6 +1,8 @@
 """RabbitMQ event consumer."""
 from typing import Callable
+
 import aio_pika
+
 from app.config import settings
 
 

@@ -1,8 +1,9 @@
 """Event schemas for RabbitMQ messages."""
-from pydantic import BaseModel
-from typing import Dict, Any
 from datetime import datetime
+from typing import Any, Dict
 from uuid import UUID
+
+from pydantic import BaseModel
 
 
 class BaseEvent(BaseModel):

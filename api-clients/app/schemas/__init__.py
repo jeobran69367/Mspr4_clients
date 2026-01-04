@@ -1,33 +1,33 @@
 """Schemas package initialization."""
-from app.schemas.customer import (
-    CustomerBase,
-    CustomerCreate,
-    CustomerUpdate,
-    CustomerResponse,
-    CustomerWithAddresses,
-    CustomerListResponse,
-)
 from app.schemas.address import (
     AddressBase,
     AddressCreate,
-    AddressUpdate,
     AddressResponse,
+    AddressUpdate,
 )
 from app.schemas.auth import (
+    EmailConfirmation,
     LoginRequest,
     LoginResponse,
+    PasswordChangeRequest,
+    PasswordResetConfirm,
+    PasswordResetRequest,
     RefreshTokenRequest,
     TokenResponse,
-    PasswordChangeRequest,
-    PasswordResetRequest,
-    PasswordResetConfirm,
-    EmailConfirmation,
+)
+from app.schemas.customer import (
+    CustomerBase,
+    CustomerCreate,
+    CustomerListResponse,
+    CustomerResponse,
+    CustomerUpdate,
+    CustomerWithAddresses,
 )
 from app.schemas.event import (
-    EventType,
-    EventMetadata,
-    CustomerEvent,
     AddressEvent,
+    CustomerEvent,
+    EventMetadata,
+    EventType,
 )
 
 __all__ = [

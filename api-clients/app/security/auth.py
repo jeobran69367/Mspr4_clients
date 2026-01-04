@@ -1,7 +1,9 @@
 """JWT authentication utilities."""
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 from jose import JWTError, jwt
+
 from app.config import settings
 
 

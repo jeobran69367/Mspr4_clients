@@ -1,9 +1,11 @@
 """RabbitMQ event producer."""
 from typing import Optional
+
 import aio_pika
-from aio_pika import Message, DeliveryMode
+from aio_pika import DeliveryMode, Message
+
 from app.config import settings
-from app.schemas.event import CustomerEvent, AddressEvent
+from app.schemas.event import AddressEvent, CustomerEvent
 
 
 class EventProducer:

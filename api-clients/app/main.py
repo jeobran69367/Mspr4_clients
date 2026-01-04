@@ -1,14 +1,15 @@
 """Main FastAPI application."""
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 import logging
 import subprocess
+from contextlib import asynccontextmanager
 
-from app.config import settings
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from app.api.v1 import api_router
-from app.events.producer import event_producer
+from app.config import settings
 from app.events.consumer import event_consumer
+from app.events.producer import event_producer
 
 # Logging
 logging.basicConfig(level=logging.INFO)

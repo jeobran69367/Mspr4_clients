@@ -1,14 +1,15 @@
 """Admin API endpoints."""
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.database import get_db
 from app.dependencies import require_admin
-from app.services.customer_service import CustomerService
-from app.services.event_service import EventService
-from app.schemas.customer import CustomerResponse
-from app.schemas.event import EventType
 from app.events.producer import event_producer
 from app.models.customer import Customer
+from app.schemas.customer import CustomerResponse
+from app.schemas.event import EventType
+from app.services.customer_service import CustomerService
+from app.services.event_service import EventService
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -48,8 +49,8 @@ async def suspend_customer(
 @router.get("/stats")
 async def get_stats(current_user: Customer = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Get customer statistics."""
+    from app.models.customer import CustomerStatus, CustomerType
     from app.repositories.customer_repository import CustomerRepository
-    from app.models.customer import CustomerType, CustomerStatus
 
     repo = CustomerRepository(db)
 

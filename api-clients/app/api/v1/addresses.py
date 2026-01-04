@@ -1,15 +1,17 @@
 """Address API endpoints."""
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.database import get_db
 from app.dependencies import get_current_active_user
-from app.services.address_service import AddressService
-from app.services.event_service import EventService
-from app.schemas.address import AddressCreate, AddressUpdate, AddressResponse
-from app.schemas.event import EventType
 from app.events.producer import event_producer
 from app.models.customer import Customer
+from app.schemas.address import AddressCreate, AddressResponse, AddressUpdate
+from app.schemas.event import EventType
+from app.services.address_service import AddressService
+from app.services.event_service import EventService
 
 router = APIRouter(prefix="/addresses", tags=["addresses"])
 

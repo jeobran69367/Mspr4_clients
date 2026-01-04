@@ -1,6 +1,7 @@
 """Event handlers for processing incoming events."""
 import json
 import logging
+
 from app.events.schemas import OrderCreatedEvent, ProductReservedEvent
 
 logger = logging.getLogger(__name__)

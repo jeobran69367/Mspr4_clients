@@ -1,6 +1,7 @@
 """Permissions and roles management."""
 from enum import Enum
 from typing import List
+
 from app.models.customer import CustomerType
 
 

@@ -1,8 +1,10 @@
 """Address service with business logic."""
-from typing import List, Optional
 import uuid
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List, Optional
+
 from fastapi import HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.address import Address
 from app.repositories.address_repository import AddressRepository
 from app.schemas.address import AddressCreate, AddressUpdate

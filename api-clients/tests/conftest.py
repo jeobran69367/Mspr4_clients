@@ -1,11 +1,13 @@
 """Pytest configuration and fixtures."""
-import pytest
 import asyncio
 from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+
+import pytest
 from httpx import AsyncClient
-from app.main import app
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
 from app.database import get_db
+from app.main import app
 from app.models.base import Base
 
 # Test database URL

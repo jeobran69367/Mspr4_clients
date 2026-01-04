@@ -1,10 +1,11 @@
 """Event service for RabbitMQ messaging."""
-from typing import Optional
 import uuid
 from datetime import datetime
-from app.schemas.event import EventType, EventMetadata, CustomerEvent, AddressEvent
-from app.models.customer import Customer
+from typing import Optional
+
 from app.models.address import Address
+from app.models.customer import Customer
+from app.schemas.event import AddressEvent, CustomerEvent, EventMetadata, EventType
 
 
 class EventService:

@@ -1,8 +1,9 @@
 """Test factories for creating test data."""
 import uuid
 from datetime import datetime
-from app.models.customer import Customer, CustomerType, CustomerStatus
+
 from app.models.address import Address, AddressType
+from app.models.customer import Customer, CustomerStatus, CustomerType
 from app.security.passwords import hash_password
 
 

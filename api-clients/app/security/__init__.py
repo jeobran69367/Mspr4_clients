@@ -11,8 +11,8 @@ from app.security.passwords import (
 )
 from app.security.permissions import (
     Permission,
-    has_permission,
     get_permissions,
+    has_permission,
 )
 
 __all__ = [

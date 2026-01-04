@@ -1,19 +1,20 @@
 """Authentication API endpoints."""
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.config import settings
 from app.database import get_db
 from app.dependencies import get_current_active_user
-from app.services.auth_service import AuthService
+from app.models.customer import Customer
 from app.schemas.auth import (
+    EmailConfirmation,
     LoginRequest,
     LoginResponse,
+    PasswordChangeRequest,
     RefreshTokenRequest,
     TokenResponse,
-    PasswordChangeRequest,
-    EmailConfirmation,
 )
-from app.config import settings
-from app.models.customer import Customer
+from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 

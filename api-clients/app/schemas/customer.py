@@ -1,10 +1,11 @@
 """Customer schemas for API validation."""
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
 from uuid import UUID
 
-from app.models.customer import CustomerType, CustomerStatus
+from pydantic import BaseModel, EmailStr, Field
+
+from app.models.customer import CustomerStatus, CustomerType
 from app.schemas.address import AddressResponse
 
 

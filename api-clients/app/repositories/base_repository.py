@@ -1,7 +1,9 @@
 """Base repository pattern."""
-from typing import Generic, TypeVar, Type, List, Optional
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Generic, List, Optional, Type, TypeVar
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.base import Base
 
 ModelType = TypeVar("ModelType", bound=Base)

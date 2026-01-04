@@ -1,7 +1,9 @@
 """Address repository."""
 from typing import List, Optional
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.address import Address, AddressType
 from app.repositories.base_repository import BaseRepository
 

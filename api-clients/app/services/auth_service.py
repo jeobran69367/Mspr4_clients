@@ -1,15 +1,17 @@
 """Authentication service with business logic."""
+import uuid
 from datetime import datetime, timedelta
 from typing import Tuple
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from fastapi import HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.config import settings
 from app.models.customer import Customer
 from app.models.user_auth import UserAuth
 from app.repositories.customer_repository import CustomerRepository
 from app.security.auth import create_access_token, create_refresh_token, verify_token
-from app.security.passwords import verify_password, hash_password
-from app.config import settings
-import uuid
+from app.security.passwords import hash_password, verify_password
 
 
 class AuthService:

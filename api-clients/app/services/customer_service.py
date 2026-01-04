@@ -1,9 +1,11 @@
 """Customer service with business logic."""
-from typing import Optional, List
-from datetime import datetime
 import uuid
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
+from typing import List, Optional
+
 from fastapi import HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.customer import Customer, CustomerStatus
 from app.repositories.customer_repository import CustomerRepository
 from app.schemas.customer import CustomerCreate, CustomerUpdate
