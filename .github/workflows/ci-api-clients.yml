@@ -140,11 +140,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install flake8 black isort pylint
+          cd api-clients
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
       - name: Lint with flake8
         run: |
+          cd api-clients
           # Stop the build if there are Python syntax errors or undefined names
           flake8 app tests --count --select=E9,F63,F7,F82 --show-source --statistics
           # Exit-zero treats all errors as warnings
@@ -152,14 +154,17 @@ jobs:
 
       - name: Check code formatting with black
         run: |
+          cd api-clients
           black --check app tests
 
       - name: Check import sorting with isort
         run: |
+          cd api-clients
           isort --check-only app tests
 
       - name: Lint with pylint
         run: |
+          cd api-clients
           pylint app --disable=C0111,R0903,W0212 --max-line-length=120 || true
 
       - name: Review Dog - flake8 (PR only)
@@ -187,6 +192,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          cd api-clients
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
           pip install pytest-cov
@@ -196,12 +202,13 @@ jobs:
           TESTING: 'true'
           DATABASE_URL: 'sqlite:///./test.db'
         run: |
+          cd api-clients
           pytest tests/ -v --cov=app --cov-report=xml --cov-report=html --cov-report=term --cov-fail-under=40
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          files: ./coverage.xml
+          files: ./api-clients/coverage.xml
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
@@ -210,7 +217,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: htmlcov/
+          path: api-clients/htmlcov/
 
   security:
     name: 🔒 Analyse de sécurité
@@ -229,6 +236,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          cd api-clients
           pip install -r requirements.txt
           pip install safety bandit
 
@@ -238,6 +246,7 @@ jobs:
 
       - name: Security scan with bandit
         run: |
+          cd api-clients
           bandit -r app -f json -o bandit-report.json || true
           bandit -r app -f screen
 
@@ -264,7 +273,7 @@ jobs:
         with:
           name: security-reports
           path: |
-            bandit-report.json
+            api-clients/bandit-report.json
         if: always()
 
   sonarcloud:
@@ -286,6 +295,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          cd api-clients
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
           pip install pytest-cov
@@ -295,6 +305,7 @@ jobs:
           TESTING: 'true'
           DATABASE_URL: 'sqlite:///./test.db'
         run: |
+          cd api-clients
           pytest tests/ -v --cov=app --cov-report=xml
 
       - name: SonarCloud Scan
@@ -303,6 +314,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
+          projectBaseDir: api-clients
           args: >
             -Dsonar.projectKey=jeobran69367_Mspr4_clients
             -Dsonar.organization=jeobran69367
@@ -329,6 +341,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          cd api-clients
           pip install -r requirements.txt
 
       - name: Verify application can start
@@ -336,6 +349,7 @@ jobs:
           TESTING: 'true'
           DATABASE_URL: 'sqlite:///./test.db'
         run: |
+          cd api-clients
           python -c "from app.main import app; print('✅ Application imports successfully')"
 
   integration:
@@ -370,6 +384,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          cd api-clients
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
@@ -384,12 +399,14 @@ jobs:
         env:
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
         run: |
+          cd api-clients
           alembic upgrade head
 
       - name: Run integration tests
         env:
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
         run: |
+          cd api-clients
           pytest tests/ -v -m "not unit" || echo "No integration tests marked yet"
 
   # ============================================
