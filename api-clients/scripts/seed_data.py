@@ -1,17 +1,18 @@
 """Seed database with test data."""
 import asyncio
-import sys
 import os
+import sys
 import uuid
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.database import AsyncSessionLocal
-from app.models.customer import Customer, CustomerType, CustomerStatus
-from app.models.address import Address, AddressType
-from app.security.passwords import hash_password
 from datetime import datetime
+
+from app.database import AsyncSessionLocal
+from app.models.address import Address, AddressType
+from app.models.customer import Customer, CustomerStatus, CustomerType
+from app.security.passwords import hash_password
 
 
 async def seed_data():

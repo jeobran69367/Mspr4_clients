@@ -1,14 +1,14 @@
 """Initialize database with tables."""
 import asyncio
-import sys
 import os
+import sys
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database import async_engine
+from app.models import Address, Customer, UserAuth
 from app.models.base import Base
-from app.models import Customer, Address, UserAuth
 
 
 async def init_db():
