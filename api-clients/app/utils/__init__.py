@@ -7,12 +7,7 @@ from app.utils.exceptions import (
     InsufficientPermissionsException,
     InvalidCredentialsException,
 )
-from app.utils.formatters import (
-    format_customer_name,
-    format_date,
-    format_phone_number,
-    format_siret,
-)
+from app.utils.formatters import format_customer_name, format_date, format_phone_number, format_siret
 from app.utils.validators import (
     validate_email,
     validate_phone,

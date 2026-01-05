@@ -1,10 +1,5 @@
 """Schemas package initialization."""
-from app.schemas.address import (
-    AddressBase,
-    AddressCreate,
-    AddressResponse,
-    AddressUpdate,
-)
+from app.schemas.address import AddressBase, AddressCreate, AddressResponse, AddressUpdate
 from app.schemas.auth import (
     EmailConfirmation,
     LoginRequest,
@@ -23,12 +18,7 @@ from app.schemas.customer import (
     CustomerUpdate,
     CustomerWithAddresses,
 )
-from app.schemas.event import (
-    AddressEvent,
-    CustomerEvent,
-    EventMetadata,
-    EventType,
-)
+from app.schemas.event import AddressEvent, CustomerEvent, EventMetadata, EventType
 
 __all__ = [
     "CustomerBase",

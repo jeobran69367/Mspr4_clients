@@ -8,13 +8,7 @@ from app.database import get_db
 from app.dependencies import get_current_active_user, require_admin
 from app.events.producer import event_producer
 from app.models.customer import Customer
-from app.schemas.customer import (
-    CustomerCreate,
-    CustomerListResponse,
-    CustomerResponse,
-    CustomerUpdate,
-    CustomerWithAddresses,
-)
+from app.schemas.customer import CustomerCreate, CustomerListResponse, CustomerResponse, CustomerUpdate, CustomerWithAddresses
 from app.schemas.event import EventType
 from app.services.customer_service import CustomerService
 from app.services.event_service import EventService
