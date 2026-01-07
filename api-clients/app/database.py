@@ -1,38 +1,62 @@
-# api-clients/app/database.py
-import os
+"""Database configuration and session management."""
+
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import sessionmaker
+
 from app.config import settings
 
-Base = declarative_base()
+DATABASE_URL = settings.DATABASE_URL
 
-# Vérifier si nous sommes en mode test
-TESTING = os.getenv("TESTING", "false").lower() == "true"
+# -----------------------------
+# Sync engine (migrations)
+# -----------------------------
+engine = create_engine(
+    DATABASE_URL.replace("+asyncpg", ""),
+    echo=settings.DEBUG,
+)
 
-if TESTING:
-    # Mode test: utiliser SQLite synchrone
-    print("🔧 Using synchronous SQLite for testing")
-    DATABASE_URL = "sqlite:///./test.db"
-    engine = create_engine(DATABASE_URL, echo=settings.DEBUG, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+)
+
+# -----------------------------
+# Async engine (application)
+# -----------------------------
+if DATABASE_URL.startswith("postgresql"):
+    ASYNC_DATABASE_URL = DATABASE_URL.replace(
+        "postgresql://", "postgresql+asyncpg://"
+    )
+elif DATABASE_URL.startswith("sqlite"):
+    ASYNC_DATABASE_URL = DATABASE_URL.replace(
+        "sqlite://", "sqlite+aiosqlite://"
+    )
 else:
-    # Mode production: utiliser PostgreSQL
-    print("🚀 Using PostgreSQL for production")
-    # Convertir l'URL asynchrone en URL synchrone pour SQLAlchemy standard
-    if settings.DATABASE_URL.startswith("postgresql+asyncpg://"):
-        DATABASE_URL = settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
-    elif settings.DATABASE_URL.startswith("sqlite+aiosqlite://"):
-        DATABASE_URL = settings.DATABASE_URL.replace("sqlite+aiosqlite://", "sqlite://")
-    else:
-        DATABASE_URL = settings.DATABASE_URL
-    
-    engine = create_engine(DATABASE_URL, echo=settings.DEBUG)
+    raise ValueError(f"Unsupported database driver in {DATABASE_URL}")
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+async_engine = create_async_engine(
+    ASYNC_DATABASE_URL,
+    echo=settings.DEBUG,
+)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+AsyncSessionLocal = async_sessionmaker(
+    async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
+
+# -----------------------------
+# Dependency
+# -----------------------------
+async def get_db():
+    """Get async database session."""
+    async with AsyncSessionLocal() as session:
+        yield session
