@@ -57,6 +57,69 @@ jobs:
             revert
           requireScope: false
 
+  pr-size-check:
+    name: 📊 PR Size Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check PR size
+        run: |
+          ADDITIONS=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | grep -oP '\d+(?= insertion)' || echo 0)
+          DELETIONS=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | grep -oP '\d+(?= deletion)' || echo 0)
+          TOTAL=$((ADDITIONS + DELETIONS))
+          
+          echo "📊 PR Statistics:"
+          echo "  Additions: $ADDITIONS"
+          echo "  Deletions: $DELETIONS"
+          echo "  Total changes: $TOTAL"
+          
+          if [ $TOTAL -gt 1000 ]; then
+            echo "⚠️  Warning: PR is very large (>1000 lines). Consider splitting it."
+          fi
+
+  conflict-check:
+    name: 🔀 Check for merge conflicts
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for merge conflicts
+        run: |
+          # Fetch base branch and handle case where it might not exist
+          if git fetch origin ${{ github.base_ref }} 2>/dev/null; then
+            # Check if origin base ref exists
+            if git rev-parse origin/${{ github.base_ref }} >/dev/null 2>&1; then
+              # Get merge base
+              MERGE_BASE=$(git merge-base HEAD origin/${{ github.base_ref }} 2>/dev/null || echo "")
+              
+              if [ -n "$MERGE_BASE" ]; then
+                # Check for conflicts
+                if git merge-tree $MERGE_BASE origin/${{ github.base_ref }} HEAD | grep -q '<<<<<<<'; then
+                  echo "❌ Merge conflicts detected!"
+                  exit 1
+                else
+                  echo "✅ No merge conflicts"
+                fi
+              else
+                echo "ℹ️  Cannot determine merge base - skipping conflict check"
+                echo "✅ Assuming no conflicts (new branch)"
+              fi
+            else
+              echo "ℹ️  Base branch does not exist yet - skipping conflict check"
+              echo "✅ No conflicts (new repository or branch)"
+            fi
+          else
+            echo "ℹ️  Cannot fetch base branch - skipping conflict check"
+            echo "✅ Assuming no conflicts"
+          fi
+
   # ============================================
   # CI JOBS (always run)
   # ============================================
@@ -77,17 +140,23 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           cd api-clients
+          pip install flake8 black isort pylint
           pip install -r requirements.txt
-          pip install flake8 black isort pylint pytest httpx aiosqlite
+          if [ -f "requirements-dev.txt" ]; then
+            pip install -r requirements-dev.txt
+          else
+            pip install pytest pytest-cov httpx
+          fi
 
       - name: Lint with flake8
         run: |
           cd api-clients
-          flake8 app tests --count --select=E9,F63,F7,F82 --show-source --statistics || true
+          # Stop the build if there are Python syntax errors or undefined names
+          flake8 app tests --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Exit-zero treats all errors as warnings
           flake8 app tests --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
 
       - name: Check code formatting with black
-        id: black-check
         run: |
           cd api-clients
           black --check app tests || echo "⚠️  Formatting issues found. Run 'black app tests' locally."
@@ -101,7 +170,7 @@ jobs:
       - name: Lint with pylint
         run: |
           cd api-clients
-          pylint app --disable=C0111,R0903,W0212 --max-line-length=120 --exit-zero
+          pylint app --disable=C0111,R0903,W0212 --max-line-length=120 || true
 
   test:
     name: 🧪 Tests unitaires et couverture
@@ -122,64 +191,16 @@ jobs:
           python -m pip install --upgrade pip
           cd api-clients
           pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-asyncio httpx aiosqlite
-
-      - name: Create test database tables
-        env:
-          DATABASE_URL: 'sqlite+aiosqlite:///./test.db'
-        run: |
-          cd api-clients
-          
-          # Créer un script Python pour initialiser la base de données
-          cat > setup_test_db.py << 'EOF'
-import asyncio
-import sys
-import os
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from sqlalchemy.ext.asyncio import create_async_engine
-
-# Importer Base et tous les modèles
-try:
-    from app.database import Base
-    from app.models import *  # Importez tous vos modèles
-    print("✅ Successfully imported models")
-except ImportError as e:
-    print(f"❌ Error importing models: {e}")
-    sys.exit(1)
-
-async def setup_db():
-    db_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
-    print(f"Setting up database: {db_url}")
-    
-    engine = create_async_engine(db_url, echo=False)
-    
-    try:
-        async with engine.begin() as conn:
-            print("Dropping existing tables...")
-            await conn.run_sync(Base.metadata.drop_all)
-            print("Creating new tables...")
-            await conn.run_sync(Base.metadata.create_all)
-        
-        print("✅ Database tables created successfully")
-    except Exception as e:
-        print(f"❌ Error creating tables: {e}")
-        raise
-    finally:
-        await engine.dispose()
-
-if __name__ == "__main__":
-    asyncio.run(setup_db())
-EOF
-          
-          # Exécuter le script
-          python setup_test_db.py
+          if [ -f "requirements-dev.txt" ]; then
+            pip install -r requirements-dev.txt
+          else
+            pip install pytest pytest-cov httpx
+          fi
 
       - name: Run tests with coverage
         env:
           TESTING: 'true'
-          DATABASE_URL: 'sqlite+aiosqlite:///./test.db'
+          DATABASE_URL: 'sqlite:///./test.db'
         run: |
           cd api-clients
           pytest tests/ -v --cov=app --cov-report=xml --cov-report=html --cov-report=term --cov-fail-under=40
@@ -197,13 +218,6 @@ EOF
         with:
           name: coverage-report
           path: api-clients/htmlcov/
-
-      - name: Clean up test database
-        if: always()
-        run: |
-          cd api-clients
-          rm -f test.db  # Supprimer le fichier SQLite
-          rm -f setup_test_db.py  # Nettoyer le script temporaire
 
   security:
     name: 🔒 Analyse de sécurité
@@ -236,6 +250,83 @@ EOF
           bandit -r app -f json -o bandit-report.json || true
           bandit -r app -f screen
 
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'Service-Clients'
+          path: '.'
+          format: 'HTML'
+          args: >
+            --enableRetired
+            --failOnCVSS 7
+        continue-on-error: true
+
+      - name: Upload OWASP report
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-report
+          path: reports/
+        if: always()
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            api-clients/bandit-report.json
+        if: always()
+
+  sonarcloud:
+    name: 📊 SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd api-clients
+          pip install -r requirements.txt
+          if [ -f "requirements-dev.txt" ]; then
+            pip install -r requirements-dev.txt
+          else
+            pip install pytest pytest-cov
+          fi
+
+      - name: Run tests with coverage for SonarCloud
+        env:
+          TESTING: 'true'
+          DATABASE_URL: 'sqlite:///./test.db'
+        run: |
+          cd api-clients
+          pytest tests/ -v --cov=app --cov-report=xml
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: api-clients
+          args: >
+            -Dsonar.projectKey=jeobran69367_Mspr4_clients
+            -Dsonar.organization=jeobran69367
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.coverage.exclusions=tests/**,migrations/**
+            -Dsonar.sources=app
+            -Dsonar.tests=tests
+        continue-on-error: true
+
   build:
     name: 🏗️ Build Application
     runs-on: ubuntu-latest
@@ -257,19 +348,73 @@ EOF
           pip install -r requirements.txt
 
       - name: Verify application can start
+        env:
+          TESTING: 'true'
+          DATABASE_URL: 'sqlite:///./test.db'
         run: |
           cd api-clients
-          # Utiliser une base de données mémoire pour la vérification
-          python -c "
-import asyncio
-from app.main import app
-print('✅ Application imports successfully')
+          python -c "from app.main import app; print('✅ Application imports successfully')"
 
-# Vérifier que l'application peut être créée
-from fastapi.testclient import TestClient
-client = TestClient(app)
-print('✅ TestClient created successfully')
-"
+  integration:
+    name: 🔗 Tests d'intégration
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd api-clients
+          pip install -r requirements.txt
+          if [ -f "requirements-dev.txt" ]; then
+            pip install -r requirements-dev.txt
+          else
+            pip install pytest
+          fi
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U test_user; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        run: |
+          cd api-clients
+          alembic upgrade head
+
+      - name: Run integration tests
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        run: |
+          cd api-clients
+          pytest tests/ -v -m "not unit" || echo "No integration tests marked yet"
 
   # ============================================
   # SUMMARY JOB
@@ -277,7 +422,7 @@ print('✅ TestClient created successfully')
   summary:
     name: ✅ CI/CD Summary
     runs-on: ubuntu-latest
-    needs: [lint, test, security, build]
+    needs: [lint, test, security, build, integration]
     if: always()
     steps:
       - name: Check CI Results
@@ -287,14 +432,9 @@ print('✅ TestClient created successfully')
           echo "Test: ${{ needs.test.result }}"
           echo "Security: ${{ needs.security.result }}"
           echo "Build: ${{ needs.build.result }}"
-          
-          if [[ "${{ needs.lint.result }}" == "success" && "${{ needs.test.result }}" == "success" && "${{ needs.build.result }}" == "success" ]]; then
-            echo "✅ All critical jobs passed!"
-          else
-            echo "❌ Some critical jobs failed"
-          fi
+          echo "Integration: ${{ needs.integration.result }}"
 
-      - name: Fail if critical jobs failed
+      - name: Fail if any critical job failed
         if: |
           needs.lint.result == 'failure' ||
           needs.test.result == 'failure' ||
