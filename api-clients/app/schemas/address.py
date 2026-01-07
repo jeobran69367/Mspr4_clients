@@ -1,4 +1,5 @@
 """Address schemas for API validation."""
+
 from datetime import datetime
 from typing import Optional
 from uuid import UUID

@@ -1,4 +1,5 @@
 """Schemas package initialization."""
+
 from app.schemas.address import AddressBase, AddressCreate, AddressResponse, AddressUpdate
 from app.schemas.auth import (
     EmailConfirmation,

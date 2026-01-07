@@ -1,4 +1,5 @@
 """Event schemas for RabbitMQ messages."""
+
 from datetime import datetime
 from typing import Any, Dict
 from uuid import UUID

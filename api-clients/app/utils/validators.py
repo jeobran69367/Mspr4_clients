@@ -1,4 +1,5 @@
 """Data validators."""
+
 import re
 
 

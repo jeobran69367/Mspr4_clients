@@ -1,4 +1,5 @@
 """Permissions and roles management."""
+
 from enum import Enum
 from typing import List
 

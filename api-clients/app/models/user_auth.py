@@ -1,4 +1,5 @@
 """User authentication model."""
+
 import uuid
 from datetime import datetime
 

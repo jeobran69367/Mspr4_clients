@@ -1,4 +1,5 @@
 """Customer repository."""
+
 from typing import List, Optional
 
 from sqlalchemy import func, or_, select

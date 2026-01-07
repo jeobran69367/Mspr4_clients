@@ -1,4 +1,5 @@
 """Authentication service with business logic."""
+
 import uuid
 from datetime import datetime, timedelta
 from typing import Tuple

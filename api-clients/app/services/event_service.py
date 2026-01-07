@@ -1,4 +1,5 @@
 """Event service for RabbitMQ messaging."""
+
 import uuid
 from datetime import datetime
 from typing import Optional

@@ -1,4 +1,5 @@
 """Customer service with business logic."""
+
 import uuid
 from datetime import datetime
 from typing import List, Optional

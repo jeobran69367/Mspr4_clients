@@ -1,4 +1,5 @@
 """RabbitMQ event producer."""
+
 from typing import Optional
 
 import aio_pika

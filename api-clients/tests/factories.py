@@ -1,4 +1,5 @@
 """Test factories for creating test data."""
+
 import uuid
 from datetime import datetime
 

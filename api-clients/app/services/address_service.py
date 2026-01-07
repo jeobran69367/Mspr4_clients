@@ -1,4 +1,5 @@
 """Address service with business logic."""
+
 import uuid
 from typing import List, Optional
 

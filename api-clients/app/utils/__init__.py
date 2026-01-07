@@ -1,4 +1,5 @@
 """Utilities package initialization."""
+
 from app.utils.exceptions import (
     AddressNotFoundException,
     CustomerNotFoundException,

@@ -1,4 +1,5 @@
 """Authentication schemas for API validation."""
+
 from pydantic import BaseModel, EmailStr, Field
 
 

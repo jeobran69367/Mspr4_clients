@@ -1,4 +1,5 @@
 """Base repository pattern."""
+
 from typing import Generic, List, Optional, Type, TypeVar
 
 from sqlalchemy import select
