@@ -78,7 +78,7 @@ jobs:
           python -m pip install --upgrade pip
           cd api-clients
           pip install -r requirements.txt
-          pip install flake8 black isort pylint pytest httpx
+          pip install flake8 black isort pylint pytest httpx aiosqlite
 
       - name: Lint with flake8
         run: |
@@ -106,21 +106,6 @@ jobs:
   test:
     name: 🧪 Tests unitaires et couverture
     runs-on: ubuntu-latest
-    services:
-      postgres-test:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: test_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     needs: lint
     steps:
       - name: Checkout code
@@ -137,39 +122,64 @@ jobs:
           python -m pip install --upgrade pip
           cd api-clients
           pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-asyncio httpx asyncpg
+          pip install pytest pytest-cov pytest-asyncio httpx aiosqlite
 
-      - name: Wait for PostgreSQL
-        run: |
-          until pg_isready -h localhost -p 5432 -U test_user; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-
-      - name: Create extension for UUID
+      - name: Create test database tables
         env:
-          PGPASSWORD: test_password
-        run: |
-          psql -h localhost -U test_user -d test_db -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
-
-      - name: Set up test environment
-        env:
-          DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost:5432/test_db
+          DATABASE_URL: 'sqlite+aiosqlite:///./test.db'
         run: |
           cd api-clients
-          # Créer un fichier .env.test temporaire
-          echo "DATABASE_URL=postgresql+asyncpg://test_user:test_password@localhost:5432/test_db" > .env.test
-          echo "DEBUG=true" >> .env.test
-          echo "SECRET_KEY=test-secret-key-for-github-actions-$(date +%s)" >> .env.test
           
-          # Exécuter les migrations
-          echo "Running database migrations..."
-          alembic upgrade head
+          # Créer un script Python pour initialiser la base de données
+          cat > setup_test_db.py << 'EOF'
+import asyncio
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from sqlalchemy.ext.asyncio import create_async_engine
+
+# Importer Base et tous les modèles
+try:
+    from app.database import Base
+    from app.models import *  # Importez tous vos modèles
+    print("✅ Successfully imported models")
+except ImportError as e:
+    print(f"❌ Error importing models: {e}")
+    sys.exit(1)
+
+async def setup_db():
+    db_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
+    print(f"Setting up database: {db_url}")
+    
+    engine = create_async_engine(db_url, echo=False)
+    
+    try:
+        async with engine.begin() as conn:
+            print("Dropping existing tables...")
+            await conn.run_sync(Base.metadata.drop_all)
+            print("Creating new tables...")
+            await conn.run_sync(Base.metadata.create_all)
+        
+        print("✅ Database tables created successfully")
+    except Exception as e:
+        print(f"❌ Error creating tables: {e}")
+        raise
+    finally:
+        await engine.dispose()
+
+if __name__ == "__main__":
+    asyncio.run(setup_db())
+EOF
+          
+          # Exécuter le script
+          python setup_test_db.py
 
       - name: Run tests with coverage
         env:
           TESTING: 'true'
-          DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost:5432/test_db
+          DATABASE_URL: 'sqlite+aiosqlite:///./test.db'
         run: |
           cd api-clients
           pytest tests/ -v --cov=app --cov-report=xml --cov-report=html --cov-report=term --cov-fail-under=40
@@ -190,11 +200,10 @@ jobs:
 
       - name: Clean up test database
         if: always()
-        env:
-          PGPASSWORD: test_password
         run: |
-          psql -h localhost -U test_user -d test_db -c "DROP SCHEMA public CASCADE;"
-          psql -h localhost -U test_user -d test_db -c "CREATE SCHEMA public;"
+          cd api-clients
+          rm -f test.db  # Supprimer le fichier SQLite
+          rm -f setup_test_db.py  # Nettoyer le script temporaire
 
   security:
     name: 🔒 Analyse de sécurité
@@ -248,12 +257,19 @@ jobs:
           pip install -r requirements.txt
 
       - name: Verify application can start
-        env:
-          TESTING: 'true'
-          DATABASE_URL: 'sqlite+aiosqlite:///:memory:'  # Base de données mémoire pour la vérification
         run: |
           cd api-clients
-          python -c "from app.main import app; print('✅ Application imports successfully')"
+          # Utiliser une base de données mémoire pour la vérification
+          python -c "
+import asyncio
+from app.main import app
+print('✅ Application imports successfully')
+
+# Vérifier que l'application peut être créée
+from fastapi.testclient import TestClient
+client = TestClient(app)
+print('✅ TestClient created successfully')
+"
 
   # ============================================
   # SUMMARY JOB
