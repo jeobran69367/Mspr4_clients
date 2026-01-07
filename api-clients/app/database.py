@@ -12,11 +12,19 @@ from app.config import settings
 
 DATABASE_URL = settings.DATABASE_URL
 
-# -----------------------------
-# Sync engine (migrations)
-# -----------------------------
+
+# ==================================================
+# Sync engine (Alembic / migrations)
+# ==================================================
+if DATABASE_URL.startswith("postgresql+asyncpg"):
+    SYNC_DATABASE_URL = DATABASE_URL.replace("+asyncpg", "")
+elif DATABASE_URL.startswith("sqlite+aiosqlite"):
+    SYNC_DATABASE_URL = DATABASE_URL.replace("+aiosqlite", "")
+else:
+    SYNC_DATABASE_URL = DATABASE_URL
+
 engine = create_engine(
-    DATABASE_URL.replace("+asyncpg", ""),
+    SYNC_DATABASE_URL,
     echo=settings.DEBUG,
 )
 
@@ -26,19 +34,22 @@ SessionLocal = sessionmaker(
     bind=engine,
 )
 
-# -----------------------------
-# Async engine (application)
-# -----------------------------
-if DATABASE_URL.startswith("postgresql"):
+
+# ==================================================
+# Async engine (FastAPI runtime)
+# ==================================================
+if DATABASE_URL.startswith("postgresql://"):
     ASYNC_DATABASE_URL = DATABASE_URL.replace(
         "postgresql://", "postgresql+asyncpg://"
     )
-elif DATABASE_URL.startswith("sqlite"):
+elif DATABASE_URL.startswith("sqlite://"):
     ASYNC_DATABASE_URL = DATABASE_URL.replace(
         "sqlite://", "sqlite+aiosqlite://"
     )
+elif DATABASE_URL.startswith(("postgresql+asyncpg://", "sqlite+aiosqlite://")):
+    ASYNC_DATABASE_URL = DATABASE_URL
 else:
-    raise ValueError(f"Unsupported database driver in {DATABASE_URL}")
+    raise ValueError(f"Unsupported database URL: {DATABASE_URL}")
 
 async_engine = create_async_engine(
     ASYNC_DATABASE_URL,
@@ -49,14 +60,12 @@ AsyncSessionLocal = async_sessionmaker(
     async_engine,
     class_=AsyncSession,
     expire_on_commit=False,
-    autocommit=False,
-    autoflush=False,
 )
 
-# -----------------------------
+
+# ==================================================
 # Dependency
-# -----------------------------
+# ==================================================
 async def get_db():
-    """Get async database session."""
     async with AsyncSessionLocal() as session:
         yield session
