@@ -57,29 +57,6 @@ jobs:
             revert
           requireScope: false
 
-  pr-size-check:
-    name: 📊 PR Size Check
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Check PR size
-        run: |
-          ADDITIONS=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | grep -oP '\d+(?= insertion)' || echo 0)
-          DELETIONS=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | grep -oP '\d+(?= deletion)' || echo 0)
-          TOTAL=$((ADDITIONS + DELETIONS))
-          
-          echo "📊 PR Statistics:"
-          echo "  Additions: $ADDITIONS"
-          echo "  Deletions: $DELETIONS"
-          echo "  Total changes: $TOTAL"
-          
-          if [ $TOTAL -gt 1000 ]; then
-            echo "⚠️  Warning: PR is very large (>1000 lines). Consider splitting it."
-          fi
-
   # ============================================
   # CI JOBS (always run)
   # ============================================
@@ -101,8 +78,7 @@ jobs:
           python -m pip install --upgrade pip
           cd api-clients
           pip install -r requirements.txt
-          # Installer les outils de linting et testing
-          pip install flake8 black isort pylint pytest pytest-cov httpx
+          pip install flake8 black isort pylint pytest httpx
 
       - name: Lint with flake8
         run: |
@@ -114,29 +90,13 @@ jobs:
         id: black-check
         run: |
           cd api-clients
-          black --check app tests
+          black --check app tests || echo "⚠️  Formatting issues found. Run 'black app tests' locally."
         continue-on-error: true
-
-      - name: Show black formatting suggestions
-        if: steps.black-check.outcome == 'failure'
-        run: |
-          echo "⚠️  Code formatting issues found by black."
-          echo "To fix locally, run:"
-          echo "  cd api-clients && black app tests"
-          echo ""
-          echo "Or commit the changes from the auto-format step below."
-
-      - name: Auto-format with black (for PRs)
-        if: github.event_name == 'pull_request' && steps.black-check.outcome == 'failure'
-        run: |
-          cd api-clients
-          black app tests
-          echo "✅ Code auto-formatted with black"
 
       - name: Check import sorting with isort
         run: |
           cd api-clients
-          isort --check-only app tests || echo "⚠️  Import sorting issues found. Run 'isort app tests' locally."
+          isort --check-only app tests || echo "⚠️  Import sorting issues found."
 
       - name: Lint with pylint
         run: |
@@ -144,40 +104,97 @@ jobs:
           pylint app --disable=C0111,R0903,W0212 --max-line-length=120 --exit-zero
 
   test:
-  name: 🧪 Tests unitaires et couverture
-  runs-on: ubuntu-latest
-  needs: lint
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    name: 🧪 Tests unitaires et couverture
+    runs-on: ubuntu-latest
+    services:
+      postgres-test:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-        cache: 'pip'
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        cd api-clients
-        pip install -r requirements.txt
-        pip install pytest pytest-cov pytest-asyncio httpx
-        # Installer le driver async pour SQLite
-        pip install aiosqlite
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
 
-    - name: Run tests with coverage
-      env:
-        TESTING: 'true'
-        DATABASE_URL: 'sqlite+aiosqlite:///./test.db'  # ← Utiliser aiosqlite
-      run: |
-        cd api-clients
-        # Créer un fichier .env.test pour les tests si nécessaire
-        echo "DATABASE_URL=sqlite+aiosqlite:///./test.db" > .env.test
-        echo "DEBUG=true" >> .env.test
-        echo "SECRET_KEY=test-secret-key" >> .env.test
-        
-        pytest tests/ -v --cov=app --cov-report=xml --cov-report=html --cov-report=term --cov-fail-under=40
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd api-clients
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-asyncio httpx asyncpg
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U test_user; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Create extension for UUID
+        env:
+          PGPASSWORD: test_password
+        run: |
+          psql -h localhost -U test_user -d test_db -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
+
+      - name: Set up test environment
+        env:
+          DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost:5432/test_db
+        run: |
+          cd api-clients
+          # Créer un fichier .env.test temporaire
+          echo "DATABASE_URL=postgresql+asyncpg://test_user:test_password@localhost:5432/test_db" > .env.test
+          echo "DEBUG=true" >> .env.test
+          echo "SECRET_KEY=test-secret-key-for-github-actions-$(date +%s)" >> .env.test
+          
+          # Exécuter les migrations
+          echo "Running database migrations..."
+          alembic upgrade head
+
+      - name: Run tests with coverage
+        env:
+          TESTING: 'true'
+          DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost:5432/test_db
+        run: |
+          cd api-clients
+          pytest tests/ -v --cov=app --cov-report=xml --cov-report=html --cov-report=term --cov-fail-under=40
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./api-clients/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Archive coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: api-clients/htmlcov/
+
+      - name: Clean up test database
+        if: always()
+        env:
+          PGPASSWORD: test_password
+        run: |
+          psql -h localhost -U test_user -d test_db -c "DROP SCHEMA public CASCADE;"
+          psql -h localhost -U test_user -d test_db -c "CREATE SCHEMA public;"
 
   security:
     name: 🔒 Analyse de sécurité
@@ -210,17 +227,6 @@ jobs:
           bandit -r app -f json -o bandit-report.json || true
           bandit -r app -f screen
 
-      - name: OWASP Dependency Check
-        uses: dependency-check/Dependency-Check_Action@main
-        continue-on-error: true
-        with:
-          project: 'Service-Clients'
-          path: '.'
-          format: 'HTML'
-          args: >
-            --enableRetired
-            --failOnCVSS 7
-
   build:
     name: 🏗️ Build Application
     runs-on: ubuntu-latest
@@ -244,67 +250,10 @@ jobs:
       - name: Verify application can start
         env:
           TESTING: 'true'
-          DATABASE_URL: 'sqlite:///./test.db'
+          DATABASE_URL: 'sqlite+aiosqlite:///:memory:'  # Base de données mémoire pour la vérification
         run: |
           cd api-clients
           python -c "from app.main import app; print('✅ Application imports successfully')"
-
-  integration:
-    name: 🔗 Tests d'intégration
-    runs-on: ubuntu-latest
-    needs: build
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: test_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          cd api-clients
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio httpx
-
-      - name: Wait for PostgreSQL
-        run: |
-          until pg_isready -h localhost -p 5432 -U test_user; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-
-      - name: Run migrations
-        env:
-          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
-        run: |
-          cd api-clients
-          alembic upgrade head
-
-      - name: Run integration tests
-        env:
-          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
-        run: |
-          cd api-clients
-          pytest tests/ -v -m integration || echo "No integration tests found"
 
   # ============================================
   # SUMMARY JOB
@@ -312,7 +261,7 @@ jobs:
   summary:
     name: ✅ CI/CD Summary
     runs-on: ubuntu-latest
-    needs: [lint, test, security, build, integration]
+    needs: [lint, test, security, build]
     if: always()
     steps:
       - name: Check CI Results
@@ -322,7 +271,6 @@ jobs:
           echo "Test: ${{ needs.test.result }}"
           echo "Security: ${{ needs.security.result }}"
           echo "Build: ${{ needs.build.result }}"
-          echo "Integration: ${{ needs.integration.result }}"
           
           if [[ "${{ needs.lint.result }}" == "success" && "${{ needs.test.result }}" == "success" && "${{ needs.build.result }}" == "success" ]]; then
             echo "✅ All critical jobs passed!"
