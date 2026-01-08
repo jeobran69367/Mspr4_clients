@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI):
     run_migrations()
 
     # 2️⃣ Connect to RabbitMQ (non bloquant)
-    if settings.RABBITMQ_HOST:
+    if settings.RABBITMQ_ENABLED:
         try:
             await event_producer.connect()
             logger.info("RabbitMQ connection established")
