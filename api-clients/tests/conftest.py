@@ -1,6 +1,7 @@
 """Pytest configuration and fixtures."""
 
 import asyncio
+import os
 from typing import AsyncGenerator
 
 import pytest
@@ -11,8 +12,11 @@ from app.database import get_db
 from app.main import app
 from app.models.base import Base
 
-# Test database URL
-TEST_DATABASE_URL = "postgresql+asyncpg://payetonkawa_test:payetonkawa_test@localhost:5433/payetonkawa_clients_test"
+# Test database URL - use environment variable if available, otherwise use local PostgreSQL
+TEST_DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+asyncpg://payetonkawa_test:payetonkawa_test@localhost:5433/payetonkawa_clients_test"
+)
 
 # Create test engine
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
