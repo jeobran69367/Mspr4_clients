@@ -2,28 +2,25 @@
 
 from passlib.context import CryptContext
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Configure bcrypt to allow truncation (truncate_error=False)
+pwd_context = CryptContext(
+    schemes=["bcrypt"], 
+    deprecated="auto",
+    bcrypt__truncate_error=False
+)
 
 
 def hash_password(password: str) -> str:
     """Hash a password.
     
-    Truncates password to 72 bytes (bcrypt's limit) to avoid errors.
-    This is safe as bcrypt only uses the first 72 bytes anyway.
+    Bcrypt is configured to automatically truncate passwords > 72 bytes.
     """
-    # Truncate to 72 bytes to avoid bcrypt error
-    # This is safe as bcrypt only uses first 72 bytes
-    password_bytes = password.encode('utf-8')[:72]
-    password_truncated = password_bytes.decode('utf-8', errors='ignore')
-    return pwd_context.hash(password_truncated)
+    return pwd_context.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against a hash.
     
-    Truncates password to 72 bytes to match hashing behavior.
+    Bcrypt automatically truncates passwords > 72 bytes for verification.
     """
-    # Truncate to 72 bytes to match hash_password behavior
-    password_bytes = plain_password.encode('utf-8')[:72]
-    password_truncated = password_bytes.decode('utf-8', errors='ignore')
-    return pwd_context.verify(password_truncated, hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)
