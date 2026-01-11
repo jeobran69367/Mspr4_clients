@@ -1,0 +1,4 @@
+#!/bin/bash
+cd api-clients
+alembic upgrade head
+uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8003}
