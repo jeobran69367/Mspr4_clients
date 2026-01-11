@@ -16,7 +16,7 @@ async def test_login_success(client: AsyncClient, db_session: AsyncSession):
     await db_session.commit()
 
     # Login
-    response = await client.post("/api/v1/auth/login", json={"email": customer.email, "password": "password123"})
+    response = await client.post("/api/v1/auth/login", json={"email": customer.email, "password": "password123"[:72]})
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
@@ -33,7 +33,7 @@ async def test_login_invalid_credentials(client: AsyncClient, db_session: AsyncS
     await db_session.commit()
 
     # Login with wrong password
-    response = await client.post("/api/v1/auth/login", json={"email": customer.email, "password": "wrongpassword"})
+    response = await client.post("/api/v1/auth/login", json={"email": customer.email, "password": "wrongpassword"[:72]})
     assert response.status_code == 401
 
 
@@ -46,17 +46,17 @@ async def test_change_password(client: AsyncClient, db_session: AsyncSession):
     await db_session.commit()
 
     # Login
-    login_response = await client.post("/api/v1/auth/login", json={"email": customer.email, "password": "password123"})
+    login_response = await client.post("/api/v1/auth/login", json={"email": customer.email, "password": "password123"[:72]})
     token = login_response.json()["access_token"]
 
     # Change password
     response = await client.post(
         "/api/v1/auth/change-password",
-        json={"old_password": "password123", "new_password": "newpassword123"},
+        json={"old_password": "password123"[:72], "new_password": "newpassword123"[:72]},
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 204
 
     # Try to login with new password
-    new_login_response = await client.post("/api/v1/auth/login", json={"email": customer.email, "password": "newpassword123"})
+    new_login_response = await client.post("/api/v1/auth/login", json={"email": customer.email, "password": "newpassword123"[:72]})
     assert new_login_response.status_code == 200

@@ -10,6 +10,8 @@ from app.security.passwords import hash_password
 
 def create_test_customer(**kwargs):
     """Create a test customer."""
+    # Ensure password is truncated to 72 bytes for bcrypt
+    test_password = "password123"[:72]
     defaults = {
         "id": uuid.uuid4(),
         "reference": f"CLI{datetime.now().strftime('%Y%m%d')}{uuid.uuid4().hex[:6].upper()}",
@@ -20,7 +22,7 @@ def create_test_customer(**kwargs):
         "telephone": "0123456789",
         "type_client": CustomerType.PARTICULIER,
         "statut": CustomerStatus.ACTIF,
-        "hashed_password": hash_password("password123"),
+        "hashed_password": hash_password(test_password),
         "email_confirme": True,
     }
     defaults.update(kwargs)

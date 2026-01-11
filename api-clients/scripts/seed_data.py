@@ -31,7 +31,7 @@ async def seed_data():
             telephone="0123456789",
             type_client=CustomerType.ADMIN,
             statut=CustomerStatus.ACTIF,
-            hashed_password=hash_password("admin123"),
+            hashed_password=hash_password("admin123"[:72]),
             email_confirme=True,
         )
         db.add(admin)
@@ -47,7 +47,7 @@ async def seed_data():
             telephone="0612345678",
             type_client=CustomerType.PARTICULIER,
             statut=CustomerStatus.ACTIF,
-            hashed_password=hash_password("password123"),
+            hashed_password=hash_password("password123"[:72]),
             email_confirme=True,
         )
         db.add(customer)
@@ -82,7 +82,7 @@ async def seed_data():
             siret="12345678901234",
             tva_intracommunautaire="FR12345678901",
             nom_contact="Jean Martin",
-            hashed_password=hash_password("password123"),
+            hashed_password=hash_password("password123"[:72]),
             email_confirme=True,
         )
         db.add(pro_customer)

@@ -16,14 +16,14 @@ async def test_customer_lifecycle(client: AsyncClient, db_session: AsyncSession)
         "email": "lifecycle@example.com",
         "telephone": "0123456789",
         "type_client": "particulier",
-        "password": "password123",
+        "password": "password123"[:72],
     }
 
     create_response = await client.post("/api/v1/customers/", json=customer_data)
     assert create_response.status_code == 201
 
     # 2. Login
-    login_response = await client.post("/api/v1/auth/login", json={"email": customer_data["email"], "password": "password123"})
+    login_response = await client.post("/api/v1/auth/login", json={"email": customer_data["email"], "password": "password123"[:72]})
     assert login_response.status_code == 200
     token = login_response.json()["access_token"]
 
