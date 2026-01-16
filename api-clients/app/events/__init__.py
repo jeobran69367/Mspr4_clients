@@ -1,14 +1,14 @@
 """Events package initialization."""
 
-from app.events.consumer import EventConsumer, event_consumer
+from app.events.consumer import RabbitMQConsumer, event_consumer
 from app.events.handlers import handle_order_created, handle_product_reserved
-from app.events.producer import EventProducer, event_producer
+from app.events.producer import RailwayRabbitMQ, event_producer
 
 __all__ = [
     "event_producer",
-    "EventProducer",
+    "RailwayRabbitMQ",
     "event_consumer",
-    "EventConsumer",
+    "RabbitMQConsumer",
     "handle_order_created",
     "handle_product_reserved",
 ]
