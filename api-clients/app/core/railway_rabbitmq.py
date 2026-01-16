@@ -320,3 +320,5 @@ class ClientsRabbitMQ:
 
 # Singleton instance
 rabbitmq = ClientsRabbitMQ()
+
+#res()
