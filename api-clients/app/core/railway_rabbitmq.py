@@ -322,3 +322,4 @@ class ClientsRabbitMQ:
 rabbitmq = ClientsRabbitMQ()
 
 #res()
+#cgj
