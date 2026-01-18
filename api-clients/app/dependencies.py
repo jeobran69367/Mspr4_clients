@@ -41,7 +41,9 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 async def get_current_active_user(current_user=Depends(get_current_user)):
     """Get current active user."""
-    if current_user.statut != "actif":
+    from app.models.customer import CustomerStatus
+    
+    if current_user.statut != CustomerStatus.ACTIF:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
