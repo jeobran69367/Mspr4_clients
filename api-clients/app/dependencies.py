@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
+from app.models.customer import CustomerStatus
 
 security = HTTPBearer()
 
@@ -41,8 +42,6 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 async def get_current_active_user(current_user=Depends(get_current_user)):
     """Get current active user."""
-    from app.models.customer import CustomerStatus
-    
     if current_user.statut != CustomerStatus.ACTIF:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
