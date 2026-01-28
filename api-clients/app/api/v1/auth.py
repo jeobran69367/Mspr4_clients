@@ -65,6 +65,7 @@ async def confirm_email(confirmation: EmailConfirmation, db: AsyncSession = Depe
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(current_user: Customer = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)):
     """Logout current user (client-side token deletion)."""
-    # In a real application, you might want to blacklist the token
-    # For now, client should delete the token
+    # Revoke all refresh tokens for the current user
+    service = AuthService(db)
+    await service.logout(customer_id=str(current_user.id))
     return

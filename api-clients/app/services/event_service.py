@@ -28,18 +28,24 @@ class EventService:
             correlation_id=correlation_id,
         )
 
+        # Support both Enum members and plain strings for type/status. Some
+        # SQLAlchemy dialects may return the stored value as a string after
+        # commit/refresh, so we defensively get the `.value` when available.
+        customer_type = getattr(customer.type_client, "value", customer.type_client)
+        customer_status = getattr(customer.statut, "value", customer.statut)
+
         event = CustomerEvent(
             metadata=metadata,
             customer_id=customer.id,
             customer_reference=customer.reference,
             customer_email=customer.email,
-            customer_type=customer.type_client.value,
-            customer_status=customer.statut.value,
+            customer_type=customer_type,
+            customer_status=customer_status,
             data={
                 "nom": customer.nom,
                 "prenom": customer.prenom,
-                "type_client": customer.type_client.value,
-                "statut": customer.statut.value,
+                "type_client": customer_type,
+                "statut": customer_status,
             },
         )
 

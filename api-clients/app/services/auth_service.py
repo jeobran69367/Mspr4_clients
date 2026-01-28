@@ -11,6 +11,7 @@ from app.config import settings
 from app.models.customer import Customer
 from app.models.user_auth import UserAuth
 from app.repositories.customer_repository import CustomerRepository
+from app.repositories.user_auth_repository import UserAuthRepository
 from app.security.auth import create_access_token, create_refresh_token, verify_token
 from app.security.passwords import hash_password, verify_password
 
@@ -22,6 +23,7 @@ class AuthService:
         """Initialize authentication service."""
         self.db = db
         self.customer_repository = CustomerRepository(db)
+        self.user_auth_repository = UserAuthRepository(db)
 
     async def authenticate(self, email: str, password: str) -> Tuple[Customer, str, str]:
         """Authenticate a user and return tokens."""
@@ -60,7 +62,7 @@ class AuthService:
 
     async def refresh_access_token(self, refresh_token: str) -> str:
         """Refresh access token using refresh token."""
-        # Verify refresh token
+        # Verify refresh token signature and payload
         customer_id = verify_token(refresh_token, token_type="refresh")
         if not customer_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
@@ -69,6 +71,11 @@ class AuthService:
         customer = await self.customer_repository.get_by_id(customer_id)
         if not customer:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Customer not found")
+
+        # Ensure refresh token exists and is not expired in DB
+        user_auth = await self.user_auth_repository.get_by_token(refresh_token)
+        if not user_auth:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token revoked or not found")
 
         # Create new access token
         access_token = create_access_token({"sub": str(customer.id)})
@@ -105,3 +112,16 @@ class AuthService:
             customer.statut = "actif"
 
         return await self.customer_repository.update(customer)
+
+    async def logout(self, refresh_token: str = None, customer_id: str = None) -> None:
+        """Logout by deleting refresh token(s).
+
+        Either provide a refresh_token to revoke a single session, or a customer_id to revoke all sessions.
+        """
+        if refresh_token:
+            await self.user_auth_repository.delete_by_token(refresh_token)
+        elif customer_id:
+            await self.user_auth_repository.delete_by_customer(customer_id)
+        else:
+            # Nothing to do
+            return

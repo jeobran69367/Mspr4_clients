@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.customer import Customer, CustomerStatus, CustomerType
 from app.repositories.base_repository import BaseRepository
+from sqlalchemy.orm import selectinload
 
 
 class CustomerRepository(BaseRepository[Customer]):
@@ -29,6 +30,11 @@ class CustomerRepository(BaseRepository[Customer]):
     async def get_by_siret(self, siret: str) -> Optional[Customer]:
         """Get customer by SIRET."""
         result = await self.db.execute(select(Customer).where(Customer.siret == siret))
+        return result.scalar_one_or_none()
+
+    async def get_by_id_with_addresses(self, id: str) -> Optional[Customer]:
+        """Get customer by ID and eagerly load addresses to avoid async lazy loads."""
+        result = await self.db.execute(select(Customer).where(Customer.id == id).options(selectinload(Customer.adresses)))
         return result.scalar_one_or_none()
 
     async def search(self, query: str, skip: int = 0, limit: int = 100) -> List[Customer]:

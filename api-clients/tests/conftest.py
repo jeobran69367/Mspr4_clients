@@ -13,10 +13,11 @@ from app.database import get_db
 from app.main import app
 from app.models.base import Base
 
-# Test database URL - use environment variable if available, otherwise use local PostgreSQL
+# Test database URL - use environment variable if available, otherwise fall back to a local SQLite file for tests
+# SQLite avoids needing a local PostgreSQL server for running tests quickly.
 TEST_DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://payetonkawa_test:payetonkawa_test@localhost:5433/payetonkawa_clients_test"
+    "sqlite+aiosqlite:///./test.db",
 )
 
 # Create test engine

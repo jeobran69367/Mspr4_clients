@@ -63,7 +63,14 @@ class CustomerService:
 
     async def get_customer(self, customer_id: str) -> Optional[Customer]:
         """Get customer by ID."""
-        return await self.repository.get_by_id(customer_id)
+        # Use eager loading to fetch addresses and avoid lazy async IO during
+        # FastAPI response serialization which can trigger MissingGreenlet.
+        try:
+            return await self.repository.get_by_id_with_addresses(customer_id)
+        except AttributeError:
+            # Backwards compatibility: if repository doesn't implement the
+            # eager loader, fall back to simple get_by_id.
+            return await self.repository.get_by_id(customer_id)
 
     async def get_customer_by_email(self, email: str) -> Optional[Customer]:
         """Get customer by email."""
