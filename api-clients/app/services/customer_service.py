@@ -55,7 +55,7 @@ class CustomerService:
             nom_contact=customer_data.nom_contact,
             preferences=customer_data.preferences,
             hashed_password=hash_password(customer_data.password),
-            statut=CustomerStatus.EN_ATTENTE,
+            statut=CustomerStatus.ACTIF,  # Set to ACTIF by default for immediate use
             email_confirme=False,
         )
 

@@ -4,6 +4,7 @@ from typing import Generic, List, Optional, Type, TypeVar
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models.base import Base
 
@@ -20,7 +21,12 @@ class BaseRepository(Generic[ModelType]):
 
     async def get_by_id(self, id: str) -> Optional[ModelType]:
         """Get a record by ID."""
-        result = await self.db.execute(select(self.model).where(self.model.id == id))
+        # Check if model has relationships to eagerly load
+        stmt = select(self.model).where(self.model.id == id)
+        # For Customer model, eagerly load addresses
+        if hasattr(self.model, 'adresses'):
+            stmt = stmt.options(selectinload(self.model.adresses))
+        result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
     async def get_all(self, skip: int = 0, limit: int = 100) -> List[ModelType]:

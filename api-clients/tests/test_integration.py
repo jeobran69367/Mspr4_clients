@@ -29,6 +29,8 @@ async def test_customer_lifecycle(client: AsyncClient, db_session: AsyncSession)
 
     # 3. Get customer info
     get_response = await client.get("/api/v1/customers/me", headers={"Authorization": f"Bearer {token}"})
+    if get_response.status_code != 200:
+        print(f"Error getting customer: {get_response.status_code} - {get_response.text}")
     assert get_response.status_code == 200
 
     # 4. Add address
